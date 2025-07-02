@@ -13,6 +13,7 @@ python mcp_pipe.py <mcp_script>
 import sys
 import yaml
 import time
+import json
 import random
 import signal
 import asyncio
@@ -100,7 +101,7 @@ async def pipe_websocket_to_process(websocket, process):
         while True:
             # 从WebSocket读取消息
             message = await websocket.recv()
-            logger.debug(f"<< {message[:120]}...")
+            logger.info("收到响应...")
             # 写入进程stdin(文本模式)
             if isinstance(message, bytes):
                 message = message.decode('utf-8')
@@ -116,25 +117,35 @@ async def pipe_websocket_to_process(websocket, process):
 
 async def pipe_process_to_websocket(process, websocket, on_process_end=None):
     """从进程stdout读取数据并发送到WebSocket"""
+    printed = False
     try:
         while True:
-            # 从进程stdout读取数据
             data = await asyncio.get_event_loop().run_in_executor(
                 None, process.stdout.readline
             )
-            if not data:  # 如果没有数据，进程可能已结束
+            if not data:
                 logger.info("进程输出已结束")
-                if on_process_end:
-                    on_process_end()
                 break
-                
-            # 发送数据到WebSocket
-            logger.debug(f">> {data[:120]}...")
-            # 文本模式下，数据已经是字符串，无需解码
+            if not isinstance(data, str):
+                data = str(data)
+            try:
+                json_data = json.loads(data.strip())
+                if json_data.get('id') == 1 and not printed:
+                    if 'result' in json_data and 'tools' in json_data['result']:
+                        for tool in json_data['result']['tools']:
+                            name = tool.get('name', '')
+                            description = tool.get('description', '')
+                            first_line = description.split('\n')[0]
+                            logger.debug(f"{name} - {first_line}")
+                        logger.info('已注册工具数量：%d' % len(json_data['result']['tools']))
+                    printed = True
+            except json.JSONDecodeError:
+                pass
+            logger.info("发送响应...")
             await websocket.send(data)
     except Exception as e:
         logger.error(f"进程到WebSocket管道错误: {e}")
-        raise  # 重新抛出异常以触发重连
+        raise
 
 async def pipe_process_stderr_to_terminal(process, on_process_end=None):
     """从进程stderr读取数据并打印到终端"""

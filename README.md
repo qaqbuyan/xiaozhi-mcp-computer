@@ -128,6 +128,21 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
         - 工具的函数命名不正确，导致大模型无法找到该工具（这个问题命名格式正确的话一般不会出现，因为工具的命名是根据功能和渠道区分的，比如我的写入记事本的工具为 write_to_notepad 表明是写入记事本）
     - 如果大模型调用成功，那么大模型就可以正常的使用自己的工具了
 
+### 工具的打包
+    - 如果工具测试成功，那么可以将服务打包成一个 exe 文件，这样就可以直接启动服务了
+    - 不需要每次都执行 python mcp_pipe.py aggregate.py 了
+    - 只需要双击 exe 文件即可，打包后的程序也不需要安装 python 环境或者依赖
+    - 打包工具为 pyinstaller （打包工具的命令在下面）
+    - 打包工具的安装
+    ```python
+    pip install pyinstaller
+    ```
+    - 打包工具的命令
+    ```python
+    python build.py
+    ```
+    - 打包后的程序在 dist 文件夹中，双击 exe 文件即可启动服务
+
 &emsp;
 
 ## 如果代码能帮助到你，欢迎给个star
