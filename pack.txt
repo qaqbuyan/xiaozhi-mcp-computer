@@ -1,9 +1,0 @@
-python build.py
-
-「一句话命令」删除当前目录下的所有 Python 缓存文件夹
-for /d /r . %i in (__pycache__) do @if exist "%i" rmdir /s /q "%i" & for /d /r . %i in (.pytest_cache) do @if exist "%i" rmdir /s /q "%i"
-
-打包环境
-pip install pywin32 winshell
-pip install pyinstaller
-pip install pystray Pillow
