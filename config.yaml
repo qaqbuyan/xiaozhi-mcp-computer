@@ -1,0 +1,18 @@
+# 文件版本
+version: 0.1.7-beta
+
+# MCP管道连接配置
+reconnection:
+  # 初始重连等待时间(秒)
+  initial_backoff: 1
+  # 最大重连等待时间(秒)
+  max_backoff: 600
+  # 当前重连尝试次数(初始为0)
+  reconnect_attempt: 0
+  # 当前退避时间(初始为1秒)
+  backoff: 1
+
+# WebSocket端点配置
+endpoint:
+  # MCP服务器WebSocket端点(必须以wss://或ws://开头)
+  url: ""
