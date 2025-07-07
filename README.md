@@ -40,6 +40,7 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
     - 打开应用
     - 关闭应用
 - 截图保存
+- 清空回收站
 - 按键模拟
     - 鼠标模拟
         - 鼠标点击

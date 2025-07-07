@@ -8,6 +8,7 @@ from utils.file.move_folder import move_file_or_folder
 from utils.file.paste_file import paste_file_or_folder
 from utils.file.create_folder import create_folder_or_file
 from utils.file.delete_folder import delete_folder_or_file
+from utils.file.empty_recycle_bin import empty_recycle_bin
 from utils.file.tem_notepad import temporary_write_to_notepad
 from utils.file.file_properties import get_file_or_folder_properties
 
@@ -35,4 +36,6 @@ def register_file(mcp: FastMCP):
     paste_file_or_folder(mcp)
     # 注册查看文件或文件夹属性的工具
     get_file_or_folder_properties(mcp)
+    # 注册清空回收站的工具
+    empty_recycle_bin(mcp)
     logger.info("注册完成")
