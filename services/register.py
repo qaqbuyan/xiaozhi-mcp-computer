@@ -9,6 +9,7 @@ from utils.scan.tools import register_scan
 from utils.mouse.tools import register_mouse
 from utils.version.tools import register_version
 from utils.speaker.tools import register_speaker
+from utils.browser.tools import register_browser
 from utils.keyboard.tools import register_keyboard
 from utils.application.tools import register_application
 
@@ -33,6 +34,8 @@ def register(mcp: FastMCP):
     register_scan(mcp)
     # 注册扬声器工具
     register_speaker(mcp)
+    # 注册浏览器工具
+    register_browser(mcp)
     # 注册单独工具
     register_alone(mcp)
     # 注册版本工具

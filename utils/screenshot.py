@@ -8,8 +8,7 @@ logger = logging.getLogger('屏幕截图')
 def take_screenshot(mcp: FastMCP):
     @mcp.tool()
     def take_screenshot(save_dir: str = None) -> str:
-        """
-        进行屏幕截图并保存到指定路径。
+        """进行屏幕截图并保存到指定路径。
         当需要进行屏幕截图时，立刻使用该工具。
         比如说，我需要截图，你就会使用这个工具，直接返回截图的路径给用户。
         参数:

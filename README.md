@@ -20,7 +20,9 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
 &emsp;
 
 ## 自带功能
-
+- 浏览器书签
+    - 获取浏览器书签
+    - 打开浏览器书签
 - 打开桌面
 - 打开网站
 - 文件操作
