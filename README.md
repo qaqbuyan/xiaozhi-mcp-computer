@@ -8,14 +8,14 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
 
 ## 使用说明
 
-1. 安装依赖:
-    pip install -r requirements.txt
+    1. 安装依赖:
+        pip install -r requirements.txt
 
-2. 修改配置:
-    config.yaml 中修改配置，比如端口等
+    2. 修改配置:
+        config.yaml 中修改配置，比如端口等
 
-3. 启动服务:
-    python mcp_pipe.py aggregate.py
+    3. 启动服务:
+        python mcp_pipe.py aggregate.py
 
 &emsp;
 
