@@ -11,7 +11,9 @@ from utils.version.tools import register_version
 from utils.speaker.tools import register_speaker
 from utils.browser.tools import register_browser
 from utils.keyboard.tools import register_keyboard
+from utils.clipboard.tools import register_clipboard
 from utils.application.tools import register_application
+from utils.image_recognition.tools import register_image_recognition
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
@@ -40,4 +42,8 @@ def register(mcp: FastMCP):
     register_alone(mcp)
     # 注册版本工具
     register_version(mcp)
+    # 注册图像识别工具
+    register_image_recognition(mcp)
+    # 注册剪贴板工具
+    register_clipboard(mcp)
     logger.info("所有工具注册完成")

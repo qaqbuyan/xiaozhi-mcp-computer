@@ -20,6 +20,8 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
 &emsp;
 
 ## 自带功能
+
+- 图像文字坐标识别
 - 浏览器书签
     - 获取浏览器书签
     - 打开浏览器书签
@@ -65,6 +67,8 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
 - 记事本写入
 - 获取系统信息
 - 获取系统剪贴板
+    - 文字
+    - 图片
 - 电脑扬声器
     - 获取电脑音量
     - 设置电脑音量
