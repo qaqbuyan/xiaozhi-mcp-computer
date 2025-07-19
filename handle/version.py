@@ -7,14 +7,10 @@ logger = logging.getLogger('版本检查')
 
 def get_version(all_version: bool = False) -> dict:
     logger.info("进行获取版本更新...")
-    # 使用 load_config 函数获取配置
     config = load_config()
     current_version = config['version']
-    # 提取当前版本号和类型
     current_version_number, _, current_version_type = current_version.partition('-')
-    # 获取 User-Agent
-    user_agent = config.get('http_headers', {}).get('user_agent')
-    # 发送请求获取 JSON 数据
+    user_agent = config.get('user_agent')
     url = 'https://qaqbuyan.com:88/乔安模块/?mk=sj&id=mcp-client'
     headers = {}
     if user_agent:

@@ -1,10 +1,13 @@
+import time
 import logging
 from services.register import register
 from mcp.server.fastmcp import FastMCP
-from handle.logger import setup_logging
 from handle.version import get_version
+from handle.logger import setup_logging
+from handle.check import check_packages
 
 if __name__ == "__main__":
+    check_packages()
     logger = setup_logging()
     logger = logging.getLogger('管道服务')
     # 调用版本检查函数
@@ -22,3 +25,12 @@ if __name__ == "__main__":
         mcp.run(transport="stdio")
     except RuntimeError as e:
         logger.error(f"服务器启动失败: {e}")
+    # 等待服务端初始化完成
+    while True:
+        try:
+            if mcp.check_initialization():
+                break
+        except Exception:
+            pass
+        logger.info("等待服务端初始化完成...")
+        time.sleep(1)

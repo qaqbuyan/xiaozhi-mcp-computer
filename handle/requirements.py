@@ -1,0 +1,18 @@
+requirements = '''
+python-dotenv>=1.0.0
+websockets>=12.0.0
+mcp>=1.8.1
+pydantic>=2.11.4
+psutil>=5.9.0
+pyyaml>=6.0.0
+pywin32>=300
+pyperclip>=1.9.0
+pycaw>=20240210
+comtypes>=1.4.11
+pyautogui>=0.9.53
+requests>=2.32.3
+watchfiles>=0.21.0
+zstandard>=0.22.0
+Pillow>=10.0.0
+ruamel.yaml>=0.17.32
+'''

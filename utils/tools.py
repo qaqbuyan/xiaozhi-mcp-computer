@@ -1,7 +1,7 @@
 import logging
 from mcp.server.fastmcp import FastMCP
-from utils.download import download_file
 from utils.system import get_system_status
+from utils.download import download_url_file
 from utils.screenshot import take_screenshot
 
 def register_alone(mcp: FastMCP):
@@ -13,5 +13,5 @@ def register_alone(mcp: FastMCP):
     # 注册截图工具
     take_screenshot(mcp)
     # 注册下载文件工具
-    download_file(mcp)
+    download_url_file(mcp)
     logger.info("注册完成")

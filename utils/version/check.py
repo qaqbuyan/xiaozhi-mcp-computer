@@ -20,7 +20,7 @@ def check_version(mcp: FastMCP):
             "current_version" : 当前版本号,
             "latest_version" : 最新版本号,
                 如果发现当前版本号跟新版本不一致，需要告诉用户当前的版本是多少。
-                可以询问是否需要更新客户端，如果是一样的版本就不要进行询问。
+                可以询问是否需要更新客户端，需要立刻调用‘ update_client ‘工具，如果是一样的版本就不要进行询问。
             "all_updates" : [
                 {
                     "version": 版本号,

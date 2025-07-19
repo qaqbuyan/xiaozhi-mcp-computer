@@ -1,21 +1,36 @@
 # xiaozhi-mcp-computer
 一个控制电脑的接口集合，用于通过自行扩展AI能力
 
-## 视频展示
+## 视频展示（v0.1.7-beta）
 https://www.bilibili.com/video/BV19x3bz7E8z/
 
 &emsp;
 
 ## 使用说明
 
-    1. 安装依赖:
-        pip install -r requirements.txt
+    - 该项目需要使用 Python 3.11 以上版本
+    - 指令运行
+        1. 安装依赖:
+            pip install -r requirements.txt
 
-    2. 修改配置:
-        config.yaml 中修改配置，比如端口等
+        3. 修改配置:
+            config.yaml 中修改配置，比如端口等
 
-    3. 启动服务:
-        python mcp_pipe.py aggregate.py
+        4. 启动服务:
+            python mcp_pipe.py aggregate.py
+
+    - 打包运行（Windows）
+        1. 依赖:
+            如果之前从未使用过该应用或者打包版本低于 0.2.2-beta ，需要先安装 Python 以及依赖：
+            pip install -r requirements.txt
+            否则可以直接使用该应用的打包版本，在其 0.2.2-beta 之后的版本中已经包含了所有的依赖的自动安装，无需手动安装
+
+        2. 下载:
+            v0.2.1-beta版本之前可以通过 [tags](https://github.com/qaqbuyan/xiaozhi-mcp-computer/tags) 下载
+            v0.2.1-beta版本之后可以通过 询问小智 ’获取客户端版本信息‘ 得到打包程序下载链接，可以让它帮你下载，也可以自行下载
+
+        3. 运行:
+            xiaozhi-mcp-computer.exe
 
 &emsp;
 
@@ -23,8 +38,8 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
 
 - 图像文字坐标识别
 - 浏览器书签
-    - 获取浏览器书签
-    - 打开浏览器书签
+    - 获取
+    - 打开
 - 打开桌面
 - 打开网站
 - 文件操作
@@ -47,36 +62,32 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
 - 清空回收站
 - 按键模拟
     - 鼠标模拟
-        - 鼠标点击
-            - 鼠标左键
-            - 鼠标右键
-            - 鼠标中键
-            - 鼠标前键
-            - 鼠标后键
-        - 鼠标长按
-            - 鼠标左键
-            - 鼠标右键
-            - 鼠标中键
-        - 鼠标移动
-            - 鼠标滚轮上下
-            - 鼠标指针左右
+        - 点击
+            - 左键
+            - 右键
+            - 中键
+            - 前键
+            - 后键
+        - 长按
+            - 左键
+            - 右键
+            - 中键
+        - 移动
+            - 滚轮上下
+            - 指针左右
+            - 移动到指定区域
     - 键盘模拟
-        - 键盘长按
-        - 键盘输入
-        - 键盘组合键
+        - 长按
+        - 输入
+        - 组合键
 - 记事本写入
 - 获取系统信息
 - 获取系统剪贴板
     - 文字
     - 图片
 - 电脑扬声器
-    - 获取电脑音量
-    - 设置电脑音量
-    - 设置程序音量
-    - 设置电脑静音
-    - 设置程序静音
-    - 设置电脑音量
-    - 设置程序音量
+    - 获取（程序）音量
+    - 设置（程序）音量
 
 &emsp;
 

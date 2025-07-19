@@ -1,7 +1,9 @@
 import logging
 from mcp.server.fastmcp import FastMCP
 from utils.mouse.click import mouse_click
+from utils.mouse.region import move_mouse_region
 from utils.mouse.long_press import mouse_long_press
+from utils.mouse.position import get_mouse_position
 from utils.mouse.up_down_roll import mouse_up_and_down_move
 from utils.mouse.horizontal_roll import mouse_horizontal_move
 
@@ -17,4 +19,8 @@ def register_mouse(mcp: FastMCP):
     mouse_up_and_down_move(mcp)
     # 注册鼠标长按工具
     mouse_long_press(mcp)
+    # 注册鼠标位置工具
+    get_mouse_position(mcp)
+    # 注册鼠标区域移动工具
+    move_mouse_region(mcp)
     logger.info("注册完成")

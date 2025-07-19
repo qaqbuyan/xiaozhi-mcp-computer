@@ -23,5 +23,8 @@ def setup_logging():
     file_handler.setLevel(logging.DEBUG)
     file_formatter = logging.Formatter('%(asctime)s - %(name)s：%(levelname)s，%(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     file_handler.setFormatter(file_formatter)
-    logging.getLogger('').addHandler(file_handler)
+    root_logger = logging.getLogger('')
+    # 检查是否已经存在相同的文件处理器
+    if not any(isinstance(handler, logging.FileHandler) and handler.baseFilename == os.path.abspath(log_file) for handler in root_logger.handlers):
+        root_logger.addHandler(file_handler)
     return logger

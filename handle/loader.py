@@ -32,10 +32,7 @@ def load_config():
             # 对于非 Windows 系统，保持原逻辑
             system_info = platform.platform()
         # 生成 user_agent
-        user_agent = f"mcp_control_the_computer/{version}({system_info})"
-        _config_cache['http_headers'] = {
-            'user_agent': user_agent
-        }
+        _config_cache['user_agent'] = f"mcp_control_the_computer/{version}({system_info})"
         return _config_cache
     except Exception as e:
         raise

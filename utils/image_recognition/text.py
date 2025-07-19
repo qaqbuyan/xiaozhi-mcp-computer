@@ -25,7 +25,7 @@ def get_image_recognition_text(mcp: FastMCP):
         try:
             # 设置 User-Agent 头
             headers = {
-                'User-Agent': load_config().get('http_headers', {}).get('user_agent')
+                'User-Agent': load_config().get('user_agent')
             }
             # 根据文件扩展名确定 MIME 类型
             _, ext = os.path.splitext(image)

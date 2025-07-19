@@ -1,17 +1,4 @@
-"""
-此脚本用于连接到MCP服务器并将输入输出通过WebSocket端点传输。
-版本: 0.1.0
-
-使用方法:
-
-设置环境变量:
-export MCP_ENDPOINT=<mcp_endpoint>
-运行脚本:
-python mcp_pipe.py <mcp_script>
-"""
-
 import sys
-import yaml
 import time
 import json
 import random
@@ -20,12 +7,10 @@ import asyncio
 import logging
 import websockets
 import subprocess
+from handle.loader import load_config
 from handle.logger import setup_logging
 
-# 加载YAML配置（添加encoding='utf-8'参数）
-with open('config.yaml', encoding='utf-8') as f:
-    config = yaml.safe_load(f)
-
+config = load_config()
 logger = setup_logging()
 logger = logging.getLogger('管道代理')
 
@@ -183,7 +168,7 @@ async def main(args=None, on_process_end=None):
             return 1
         global mcp_script
         mcp_script = args[0]
-        logger.info("准备运行管道服务")
+        logger.info("准备运行管道服务...")
         # 检查配置文件格式
         if not config.get('endpoint') or not isinstance(config['endpoint'], dict):
             logger.error("请确认配置，该配置是无效的")
@@ -195,7 +180,6 @@ async def main(args=None, on_process_end=None):
             logger.error("请确认配置，WebSocket端点URL必须以wss://或ws://开头")
             time.sleep(30)  # 等待30秒
             return 1
-        # 修改此处，移除多余的 on_process_end 参数
         return await connect_with_retry(config['endpoint']['url'])
     except Exception as e:
         logger.error(f"管道服务启动失败: {str(e)}")
@@ -209,9 +193,8 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     # 启动主循环
     try:
-        asyncio.run(main())  # 使用asyncio.run来运行协程
+        asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("程序被用户中断")
     except Exception as e:
         logger.error(f"程序执行错误: {e}")
-    main()
