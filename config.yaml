@@ -1,5 +1,5 @@
 # 文件版本
-version: 0.2.2-beta
+version: 0.2.3-beta
 
 # MCP管道连接配置
 reconnection:
@@ -15,4 +15,4 @@ reconnection:
 # WebSocket端点配置
 endpoint:
   # MCP服务器WebSocket端点(必须以wss://或ws://开头)
-  url: "wss://api.xiaozhi.me/mcp/?token=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjM1NjA3NiwiYWdlbnRJZCI6MzkxOTQwLCJlbmRwb2ludElkIjoiYWdlbnRfMzkxOTQwIiwicHVycG9zZSI6Im1jcC1lbmRwb2ludCIsImlhdCI6MTc0OTYzMjE1N30.eI5309WfPQiO9eGdAzZje_DEUqvnPtXj5KzdU6v3in5F3yWlxYvxcCgAF21TAxa8nnqU62RN9WmOBq74haRZYw"
+  url: ""

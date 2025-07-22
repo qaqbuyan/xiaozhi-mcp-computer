@@ -8,8 +8,7 @@ logger = logging.getLogger('键盘控制')
 def control_key_operations(mcp: FastMCP):
     @mcp.tool()
     def control_key(input_value: str, long_press: bool = True) -> dict:
-        """
-        控制键盘按键的按下和松开。
+        """控制键盘按键的按下和松开。
         :param input_value: 模拟按下的键
         :param long_press: 为 True 则一直长按，如果为 False 则取消之前的长按
         """

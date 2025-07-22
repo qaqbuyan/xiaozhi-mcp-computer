@@ -6,6 +6,7 @@ from utils.mouse.long_press import mouse_long_press
 from utils.mouse.position import get_mouse_position
 from utils.mouse.up_down_roll import mouse_up_and_down_move
 from utils.mouse.horizontal_roll import mouse_horizontal_move
+from utils.mouse.identify_move import identify_move_page_position
 
 def register_mouse(mcp: FastMCP):
     """集中注册所有鼠标工具"""
@@ -23,4 +24,6 @@ def register_mouse(mcp: FastMCP):
     get_mouse_position(mcp)
     # 注册鼠标区域移动工具
     move_mouse_region(mcp)
+    # 注册识别移动工具
+    identify_move_page_position(mcp)
     logger.info("注册完成")

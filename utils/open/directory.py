@@ -6,7 +6,7 @@ from mcp.server.fastmcp import FastMCP
 
 logger = logging.getLogger('打开目录')
 
-def open_directory(mcp: FastMCP) -> dict:
+def open_directory(mcp: FastMCP):
     @mcp.tool()
     def open_directory(directory_path: str) -> dict:
         """用于打开指定目录。当需要打开桌面或者菜单目录时，立刻使用该工具。"""

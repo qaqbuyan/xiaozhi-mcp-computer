@@ -14,7 +14,7 @@ def get_browser_bookmarks(mcp: FastMCP):
     @mcp.tool()
     def get_browser_bookmarks(browser_type: str = None) -> dict:
         """获取浏览器书签, 当得到获取浏览器书签的结果时，可以使用‘open_website’工具打开对应的书签。
-        注意：
+        Notice：
             1. 当浏览器书签获取成功时，使用‘open_website’工具要保证书签的URL跟传入‘open_website’工具的URL是一致的。
                 以及书签的URL为标准，传入‘open_website’工具。
         Args:

@@ -7,12 +7,12 @@ from mcp.server.fastmcp import FastMCP
 
 logger = logging.getLogger('剪切板图片')
 
-def get_clipboard_from(mcp: FastMCP):
+def get_clipboard_image(mcp: FastMCP):
     @mcp.tool()
-    def get_clipboard_from() -> dict:
+    def get_clipboard_image() -> dict:
         """用于获取剪切板图片，当需要获取剪切板图片时，立刻使用该工具。
-        比如我说看一下这个图片或者说复制了什么图片，你就会使用这个工具，直接返回剪切板图片给用户。
-        注意：之前使用了这个工具就忘记它，进行重新调用。
+        比如用户说看一下这个剪切板图片或者复制的图片，立刻使用这个工具，
+        如果用户需要图片的文字内容，立刻使用 'get_image_recognition_text' 工具获取图片的文字内容。
         返回包含是否成功和结果的字典。
         """
         try:
@@ -23,7 +23,7 @@ def get_clipboard_from(mcp: FastMCP):
                 logger.error(msg)
                 return {"success": False, "result": msg}
             # 打印剪贴板内容的类型和值，便于调试
-            logger.debug(f"剪贴板内容类型: {type(img)}, 值: {img}")
+            logger.info(f"剪贴板内容类型: {type(img)}, 值: {img}")
             # 检查获取到的对象是否为文件路径列表
             if isinstance(img, list):
                 if img and isinstance(img[0], str) and os.path.exists(img[0]):

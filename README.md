@@ -8,7 +8,6 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
 
 ## 使用说明
 
-    - 该项目需要使用 Python 3.11 以上版本
     - 指令运行
         1. 安装依赖:
             pip install -r requirements.txt
@@ -32,10 +31,26 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
         3. 运行:
             xiaozhi-mcp-computer.exe
 
+    - 注意事项
+        - 该项目需要使用 Python 3.11 以上版本
+        - 自动化
+            - 微信
+                - 系统要求Windows10+, Windows Server2016+
+                - 版本要求3.9.8+（不支持4.0）
+
 &emsp;
 
 ## 自带功能
 
+- 自动化
+    - 输入文字
+    - 移动鼠标到页面（屏幕）上的某个文字位置
+    - 微信
+        - 获取消息
+        - 发送文件或者消息
+    - 文档
+        - Word
+        - Excel
 - 图像文字坐标识别
 - 浏览器书签
     - 获取

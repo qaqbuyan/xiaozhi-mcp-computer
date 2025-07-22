@@ -8,7 +8,7 @@ def get_mouse_position(mcp: FastMCP):
     @mcp.tool()
     def get_mouse_position() -> dict:
         """获取当前鼠标位置。
-        返回:
+        Returns:
             dict: 包含鼠标位置的字典，格式为:
                 {
                     "success": bool,  # 操作是否成功

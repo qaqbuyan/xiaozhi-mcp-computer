@@ -10,7 +10,7 @@ def open_program(mcp: FastMCP):
     @mcp.tool()
     def open_program(program_path: str) -> dict:
         """用于打开程序或快捷方式。当需要打开桌面或者菜单程序时，立刻使用该工具。
-        args:
+        Args:
             program_path (str): 程序或快捷方式的路径,
             比如：
             C:/Users/Administrator/Desktop/Chrome.lnk

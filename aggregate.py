@@ -7,9 +7,15 @@ from handle.logger import setup_logging
 from handle.check import check_packages
 
 if __name__ == "__main__":
-    check_packages()
-    logger = setup_logging()
-    logger = logging.getLogger('管道服务')
+    try:
+        logger = setup_logging()
+        logger = logging.getLogger('管道服务')
+        logger.info("启动环境检查..")
+        check_packages()
+        logger.info("环境检查完成")
+    except Exception as e:
+        logger.error(f"环境检查失败：{str(e)}")
+        raise
     # 调用版本检查函数
     get_version(False)
     logger.info("启动注册服务...")

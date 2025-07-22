@@ -12,7 +12,7 @@ def mouse_long_press(mcp: FastMCP):
             当说鼠标长按时，使用该工具，默认持续时间为 2 秒。
             当说鼠标长按锁定时，使用该工具，持续长按。
             当说取消鼠标长按时，使用该工具，取消之前的长按。
-        参数:
+        Args:
             click_type (str): 点击类型，可选值为：
                 "left"（左键）、
                 "right"（右键）、
@@ -20,7 +20,7 @@ def mouse_long_press(mcp: FastMCP):
                 默认为 "left"。
             duration (int, bool): 长按的时长（秒），默认值为 2 秒。
                 如果为 True 则一直长按，如果为 False 则取消之前的长按。
-        返回:
+        Returns:
             dict: 包含操作结果的字典，格式为:
                 {
                     "success": bool,  # 操作是否成功

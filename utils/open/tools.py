@@ -1,4 +1,5 @@
 import logging
+from utils.open.file import open_file
 from mcp.server.fastmcp import FastMCP
 from utils.open.desktop import open_desktop
 from utils.open.website import open_website
@@ -17,4 +18,6 @@ def register_open(mcp: FastMCP):
     open_website(mcp)
     # 注册打开程序的工具
     open_program(mcp)
+    # 注册打开文件的工具
+    open_file(mcp)
     logger.info("注册完成")

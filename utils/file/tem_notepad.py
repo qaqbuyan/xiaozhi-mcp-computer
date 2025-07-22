@@ -11,9 +11,8 @@ logger = logging.getLogger('临时写入')
 def temporary_write_to_notepad(mcp: FastMCP):
     @mcp.tool()
     def temporary_write_to_notepad(content: str) -> dict:
-        """
-        用于使用记事本打开文件并写入指定内容。
-        当需要临时存储内容，或者将内容保存到文件并通过记事本展示给用户时，可使用此工具。
+        """用于使用记事本打开文件并写入指定内容。
+        当需要临时存储内容，或者将内容保存到文件，或者通过记事本展示给用户时，立刻使用此工具。
         Args:
             content (str): 要写入记事本文件的具体内容。
         Returns:

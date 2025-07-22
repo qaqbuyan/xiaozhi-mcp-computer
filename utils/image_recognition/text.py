@@ -1,55 +1,23 @@
-import os
 import logging
-import requests
-from handle.loader import load_config
 from mcp.server.fastmcp import FastMCP
-from requests.exceptions import ConnectionError
+from utils.image_recognition.identify import identify_image_text_coordinates
 
 logger = logging.getLogger('图像文字识别')
 
 def get_image_recognition_text(mcp: FastMCP):
     """图像识别文字坐标工具"""
     @mcp.tool()
-    def get_image_recognition_text(image: str) -> dict:
+    def get_image_recognition_text(image: str, timeout: int = 15) -> dict:
         """用于识别图像中的文字以及坐标
+        用户需要识别图像中的文字或者及坐标时，立刻调用该工具，
+        工具会返回图像中的文字以及坐标
         Args:
             image (str): 图像文件的路径, 支持png, jpg, jpeg, gif，比如 'C:/Users/用户名/Desktop/图片.png'
+            timeout (int): 超时时间，单位秒，默认15秒
         Returns:
             dict: 返回识别结果或错误信息
         """
-        logger.info(f"开始识别图像 {image} 的文字...")
-        if not os.path.exists(image):
-            msg = f"错误：文件 {image} 不存在"
-            logger.error(msg)
-            return {"success": False, "result": msg}
-        try:
-            # 设置 User-Agent 头
-            headers = {
-                'User-Agent': load_config().get('user_agent')
-            }
-            # 根据文件扩展名确定 MIME 类型
-            _, ext = os.path.splitext(image)
-            mime_type = { 
-                '.png': 'image/png', 
-                '.jpg': 'image/jpeg', 
-                '.jpeg': 'image/jpeg', 
-                '.gif': 'image/gif' 
-            }.get(ext.lower(), 'application/octet-stream')
-            r = requests.post(
-                'https://qaqbuyan.com:88/api/ocr/',
-                files={'image': (image, open(image, 'rb'), mime_type)},
-                headers=headers,
-                timeout=10
-            )
-            ocr_out = r.json()['results']
-            logger.info(f"成功识别图像 {image} 的文字")
-            logger.info(f"识别结果: {ocr_out}")
-            return {"success": True, "result": ocr_out}
-        except ConnectionError as e:
-            msg = f"错误：无法连接到OCR服务：{str(e)}"
-            logger.error(msg)
-            return {"success": False, "result": msg}
-        except Exception as e:
-            msg = f"处理错误：{str(e)}"
-            logger.error(msg)
-            return {"success": False, "result": msg}
+        logger.info("开始执行操作...")
+        msg = identify_image_text_coordinates(image, timeout)
+        logger.info("执行完成")
+        return msg

@@ -9,11 +9,11 @@ def mouse_horizontal_move(mcp: FastMCP):
     def mouse_horizontal_move(is_left: bool = True, total_move: int = 100, duration: float = 0.25) -> dict:
         """
         模拟鼠标水平移动操作。包括向左移动和向右移动。当说鼠标向左或向右移动时，立刻使用该工具。
-        参数:
+        Args:
             is_left (bool): 是否向左移动，True 表示向左，False 表示向右，默认为 True。
             total_move (int): 总移动量，默认为 100。
             duration (float): 移动用时，默认为 0.25 秒。
-        返回:
+        Returns:
             dict: 包含操作结果的字典，格式为:
                 {
                     "success": bool,  # 操作是否成功

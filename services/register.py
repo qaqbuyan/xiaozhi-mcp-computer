@@ -12,6 +12,8 @@ from utils.speaker.tools import register_speaker
 from utils.browser.tools import register_browser
 from utils.keyboard.tools import register_keyboard
 from utils.clipboard.tools import register_clipboard
+from utils.automation.tools import register_automation
+from utils.screenshot.tools import register_screenshot
 from utils.application.tools import register_application
 from utils.image_recognition.tools import register_image_recognition
 
@@ -24,6 +26,8 @@ def register(mcp: FastMCP):
     logger.info("进行所有工具注册...")
     # 注册程序工具
     register_application(mcp)
+    # 注册自动化工具
+    register_automation(mcp)
     # 注册文件工具
     register_file(mcp)
     # 注册键盘工具
@@ -44,6 +48,8 @@ def register(mcp: FastMCP):
     register_version(mcp)
     # 注册图像识别工具
     register_image_recognition(mcp)
+    # 注册截图工具
+    register_screenshot(mcp)
     # 注册剪贴板工具
     register_clipboard(mcp)
     logger.info("所有工具注册完成")

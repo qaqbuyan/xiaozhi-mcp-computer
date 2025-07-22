@@ -15,10 +15,18 @@ def check_packages():
     missing_packages = []
     # 获取已安装的库列表
     try:
-        installed_packages_output = subprocess.check_output([sys.executable, '-m', 'pip', 'list', '--format=freeze'], stderr=subprocess.PIPE, text=True, encoding='utf-8')
+        installed_packages_output = subprocess.check_output([sys.executable, '-m', 'pip', 'list', '--format=freeze'], stderr=subprocess.PIPE)
+        try:
+            installed_packages_output = installed_packages_output.decode('utf-8')
+        except UnicodeDecodeError:
+            installed_packages_output = installed_packages_output.decode('gbk')
         installed_packages = installed_packages_output.lower().split('\n')
     except subprocess.CalledProcessError as e:
-        logger.error(f'获取已安装库列表时出错: {e.stderr}')
+        try:
+            error_msg = e.stderr.decode('utf-8')
+        except UnicodeDecodeError:
+            error_msg = e.stderr.decode('gbk')
+        logger.error(f'获取已安装库列表时出错: {error_msg}')
         installed_packages = []  # 出错时设置为空列表，继续后续检查
     # 检查每个包是否安装
     for req in req_list:
