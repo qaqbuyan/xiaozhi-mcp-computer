@@ -33,10 +33,6 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
 
     - 注意事项
         - 该项目需要使用 Python 3.11 以上版本
-        - 自动化
-            - 微信
-                - 系统要求Windows10+, Windows Server2016+
-                - 版本要求3.9.8+（不支持4.0）
 
 &emsp;
 
@@ -45,9 +41,6 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
 - 自动化
     - 输入文字
     - 移动鼠标到页面（屏幕）上的某个文字位置
-    - 微信
-        - 获取消息
-        - 发送文件或者消息
     - 文档
         - Word
         - Excel

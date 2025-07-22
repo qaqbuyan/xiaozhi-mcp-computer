@@ -17,7 +17,7 @@ def get_version(all_version: bool = False) -> dict:
         headers['User-Agent'] = user_agent
     headers['x-requested-with'] = 'XMLHttpRequest'
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=5)
         # 检查状态码
         if response.status_code == 200:
             response.raise_for_status()

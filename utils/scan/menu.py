@@ -8,8 +8,7 @@ import logging
 logger = logging.getLogger('扫描开始菜单')
 
 def scan_menu():
-    """
-    获取开始菜单固定项信息
+    """获取开始菜单固定项信息
     Returns: (程序列表, 目录列表, 错误信息列表), 当说获取开始菜单时，立刻使用该工具。
     """
     logger.info("开始扫描开始菜单...")
@@ -61,41 +60,46 @@ def scan_menu():
         logger.error(error_msg)
         errors.append(error_msg)
     # 方法2：检查开始菜单文件夹中的链接
+    def scan_directory(directory):
+        if os.path.exists(directory):
+            for root, dirs, files in os.walk(directory):
+                for item in files:
+                    if item.lower().endswith('.lnk'):
+                        item_path = os.path.join(root, item)
+                        try:
+                            from win32com.client import Dispatch
+                            shell = Dispatch('WScript.Shell')
+                            shortcut = shell.CreateShortCut(item_path)
+                            programs.append(shortcut.Targetpath)
+                        except Exception as e:
+                            logger.warning(f"无法解析快捷方式 {item_path}: {str(e)}")
+                            programs.append(item_path)  # 解析失败时保留原路径
     try:
+        # 已有代码中检查用户特定的开始菜单
         start_menu_path = os.path.join(
             os.environ['APPDATA'], 
             r'Microsoft\Windows\Start Menu\Programs'
         )
-        # 检查用户特定的开始菜单
-        if os.path.exists(start_menu_path):
-            for item in os.listdir(start_menu_path):
-                item_path = os.path.join(start_menu_path, item)
-                if item.lower().endswith('.lnk'):
-                    programs.append(item_path)
-        # 检查所有用户的开始菜单
+        scan_directory(start_menu_path)
+        # 已有代码中检查所有用户的开始菜单
         all_users_start_menu = os.path.join(
             os.environ['ALLUSERSPROFILE'], 
             r'Microsoft\Windows\Start Menu\Programs'
         )
-        if os.path.exists(all_users_start_menu):
-            for item in os.listdir(all_users_start_menu):
-                item_path = os.path.join(all_users_start_menu, item)
-                if item.lower().endswith('.lnk'):
-                    try:
-                        from win32com.client import Dispatch
-                        shell = Dispatch('WScript.Shell')
-                        shortcut = shell.CreateShortCut(item_path)
-                        programs.append(shortcut.Targetpath)
-                    except Exception as e:
-                        logger.warning(f"无法解析快捷方式 {item_path}: {str(e)}")
-                        programs.append(item_path)  # 解析失败时保留原路径
+        scan_directory(all_users_start_menu)
+        # 新增检查 C:\ProgramData\Microsoft\Windows\Start Menu\Programs
+        program_data_start_menu = r'C:\ProgramData\Microsoft\Windows\Start Menu\Programs'
+        scan_directory(program_data_start_menu)
+        # 新增检查 C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs
+        admin_start_menu = r'C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs'
+        scan_directory(admin_start_menu)
     except Exception as e:
         error_msg = f"检查开始菜单文件夹时出错: {e}"
         logger.error(error_msg)
         errors.append(error_msg)
-    # 方法3：检查 Windows 11 中的固定项（通过 XML 或 JSON 配置）
+    # 方法3：检查 Windows 中的固定项（通过 XML 或 JSON 配置）
     try:
-        # Windows 11 可能使用不同的位置存储固定项
+        # Windows 可能使用不同的位置存储固定项
         possible_locations = [
             os.path.join(os.environ['LOCALAPPDATA'], r'Packages\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\LocalState'),
             os.path.join(os.environ['LOCALAPPDATA'], r'Microsoft\Windows\Shell')
@@ -111,7 +115,7 @@ def scan_menu():
                         except Exception as e:
                             pass
     except Exception as e:
-        error_msg = f"检查 Windows 11 配置时出错: {e}"
+        error_msg = f"检查 Windows 配置时出错: {e}"
         logger.error(error_msg)
         errors.append(error_msg)
     # 构建返回结果字符串

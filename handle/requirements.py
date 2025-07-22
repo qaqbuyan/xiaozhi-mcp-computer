@@ -15,7 +15,6 @@ watchfiles>=0.21.0
 zstandard>=0.22.0
 Pillow>=10.0.0
 ruamel.yaml>=0.17.32
-wxauto>=3.9.11.17.5
 xlsxwriter>=3.1.0
 python-docx>=0.8.11
 '''

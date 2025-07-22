@@ -1,5 +1,5 @@
 # 文件版本
-version: 0.2.3-beta
+version: 0.2.4-rc
 
 # MCP管道连接配置
 reconnection:
