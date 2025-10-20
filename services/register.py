@@ -7,6 +7,7 @@ from utils.file.tools import register_file
 from utils.open.tools import register_open
 from utils.scan.tools import register_scan
 from utils.mouse.tools import register_mouse
+from utils.music.tools import register_music
 from utils.version.tools import register_version
 from utils.speaker.tools import register_speaker
 from utils.browser.tools import register_browser
@@ -52,4 +53,6 @@ def register(mcp: FastMCP):
     register_screenshot(mcp)
     # 注册剪贴板工具
     register_clipboard(mcp)
+    # 注册音乐工具
+    register_music(mcp)
     logger.info("所有工具注册完成")

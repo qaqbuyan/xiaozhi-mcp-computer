@@ -1,5 +1,5 @@
 # 文件版本
-version: 0.2.4-rc
+version: 0.2.5-beta
 
 # MCP管道连接配置
 reconnection:
@@ -11,6 +11,20 @@ reconnection:
   reconnect_attempt: 0
   # 当前退避时间(初始为1秒)
   backoff: 1
+
+# 工具配置
+utils:
+  # 音乐工具
+  music:
+    # 自定义请求头
+    headers:
+      User-Agent: "ESP32-Music-Player/1.0"
+    # 音乐音质
+    song_type: "128"
+    # 音乐API地址
+    music_api: ""
+    # 批量播放暂停长间隔时间跳过（false）或播放（true）
+    pause_interval: True
 
 # WebSocket端点配置
 endpoint:

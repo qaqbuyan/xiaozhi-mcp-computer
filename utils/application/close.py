@@ -51,15 +51,15 @@ def close_application(mcp: FastMCP):
             if success_count > 0 and failed_count == 0:
                 msg = f"{process_name} 共 {total_processes} 个进程，成功关闭 {success_count} 个进程"
                 logger.info(msg)
-                return {"success": True, "result": "成功关闭"}
+                return {"success": True, "result": msg}
             elif success_count == 0 and failed_count > 0:
                 msg = f"{process_name} 共 {total_processes} 个进程，关闭失败，共 {failed_count} 个进程未关闭"
                 logger.error(msg)
-                return {"success": False, "result": "没有正常关闭完"}
+                return {"success": False, "result": msg}
             elif success_count > 0 and failed_count > 0:
                 msg = f"{process_name} 共 {total_processes} 个进程，部分关闭成功，成功关闭 {success_count} 个，失败 {failed_count} 个"
                 logger.warning(msg)
-                return {"success": False, "result": "没有正常关闭完"}
+                return {"success": False, "result": msg}
             else:
                 msg = f"未找到名为 {process_name} 的进程"
                 logger.info(msg)

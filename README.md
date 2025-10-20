@@ -31,13 +31,22 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
         3. 运行:
             xiaozhi-mcp-computer.exe
 
-    - 注意事项
-        - 该项目需要使用 Python 3.11 以上版本
+- 注意事项
+    - 该项目需要使用 Python 3.13 以上版本
+    - 如果需要使用 播放音乐 功能，需要自建 API，可以参考 [点歌](https://github.com/qaqbuyan/xiaozhi-esp32-qq-music)
+    中关于 项目结构 中的 配套的音乐源代码
 
 &emsp;
 
 ## 自带功能
 
+- 播放音乐
+    - 点歌
+    - 顺序（随机）播放歌单（腾讯）
+    - 继续播放
+    - 停止播放
+    - 切换播放模式（循环/随机/顺序）
+    - 调整音量（增加/减少/设置）
 - 自动化
     - 输入文字
     - 移动鼠标到页面（屏幕）上的某个文字位置

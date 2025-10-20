@@ -53,8 +53,8 @@ async def connect_to_server(uri, on_process_end=None):
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                encoding='utf-8',
-                text=True  # 使用文本模式
+                encoding=None,  # 不设置编码，使用二进制模式
+                text=False  # 使用二进制模式
             )
             logger.info(f"已启动注册进程")
             # 创建两个任务：从WebSocket读取并写入进程，从进程读取并写入WebSocket
@@ -87,10 +87,14 @@ async def pipe_websocket_to_process(websocket, process):
             # 从WebSocket读取消息
             message = await websocket.recv()
             logger.info("收到响应...")
-            # 写入进程stdin(文本模式)
+            # 处理编码问题：先尝试UTF-8，失败则尝试GBK
             if isinstance(message, bytes):
-                message = message.decode('utf-8')
-            process.stdin.write(message + '\n')
+                try:
+                    message = message.decode('utf-8')
+                except UnicodeDecodeError:
+                    message = message.decode('gbk')
+            # 将消息转换为字节并写入进程stdin
+            process.stdin.write(message.encode('utf-8') + b'\n')
             process.stdin.flush()
     except Exception as e:
         logger.error(f"WebSocket到进程管道错误: {e}")
@@ -105,14 +109,20 @@ async def pipe_process_to_websocket(process, websocket, on_process_end=None):
     printed = False
     try:
         while True:
-            data = await asyncio.get_event_loop().run_in_executor(
+            # 读取二进制数据
+            data_bytes = await asyncio.get_event_loop().run_in_executor(
                 None, process.stdout.readline
             )
-            if not data:
+            if not data_bytes:
                 logger.info("进程输出已结束")
                 break
-            if not isinstance(data, str):
-                data = str(data)
+            
+            # 处理编码问题：先尝试UTF-8，失败则尝试GBK
+            try:
+                data = data_bytes.decode('utf-8')
+            except UnicodeDecodeError:
+                data = data_bytes.decode('gbk')
+            
             try:
                 json_data = json.loads(data.strip())
                 if json_data.get('id') == 1 and not printed:
@@ -136,16 +146,23 @@ async def pipe_process_stderr_to_terminal(process, on_process_end=None):
     """从进程stderr读取数据并打印到终端"""
     try:
         while True:
-            # 从进程stderr读取数据
-            data = await asyncio.get_event_loop().run_in_executor(
+            # 从进程stderr读取二进制数据
+            data_bytes = await asyncio.get_event_loop().run_in_executor(
                 None, process.stderr.readline
             )
-            if not data:  # 如果没有数据，进程可能已结束
+            if not data_bytes:  # 如果没有数据，进程可能已结束
                 logger.info("进程标准错误输出已结束")
                 if on_process_end:
                     on_process_end()
                 break
-            # 将stderr数据打印到终端(文本模式下，数据已经是字符串)
+            
+            # 处理编码问题：先尝试UTF-8，失败则尝试GBK
+            try:
+                data = data_bytes.decode('utf-8')
+            except UnicodeDecodeError:
+                data = data_bytes.decode('gbk')
+            
+            # 将stderr数据打印到终端
             sys.stderr.write(data)
             sys.stderr.flush()
     except Exception as e:
