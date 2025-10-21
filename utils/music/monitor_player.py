@@ -25,7 +25,7 @@ async def monitor_player_status(default_player_name, total_seconds, file_name):
             audio_sessions_result = get_all_audio_sessions(False)
             
             if not audio_sessions_result["success"]:
-                logger.warning(f"警告：获取音频会话失败: {audio_sessions_result['result']}")
+                logger.warning(f"获取音频会话失败: {audio_sessions_result['result']}")
                 await asyncio.sleep(1)
                 continue
             
@@ -44,7 +44,7 @@ async def monitor_player_status(default_player_name, total_seconds, file_name):
                 break
             
         except Exception as e:
-            logger.warning(f"警告：监控播放器状态时出错: {str(e)}")
+            logger.warning(f"监控播放器状态时出错: {str(e)}")
         
         # 每秒检查一次
         await asyncio.sleep(1)

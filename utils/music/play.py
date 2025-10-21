@@ -142,7 +142,7 @@ def play_music(file_path, duration_str="", skip_audio_check=True):
             monitor_thread.daemon = True  # 设置为守护线程，主线程结束时自动终止
             monitor_thread.start()
         except ValueError:
-            msg = f"警告：无效的时长格式 '{duration_str}'，监控功能未启动"
+            msg = f"无效的时长格式 '{duration_str}'，监控功能未启动"
             logger.warning(msg)
         
         msg = f"已使用系统默认播放器打开: {os.path.basename(file_path)}"

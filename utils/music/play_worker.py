@@ -7,7 +7,7 @@ from utils.music.music import MusicPlayer
 from utils.file.default_handler import get_default_file_handler
 from utils.speaker.get_audio_sessions import get_all_audio_sessions
 
-logger = logging.getLogger('音乐播放线程')
+logger = logging.getLogger('播放线程')
 
 def _batch_play_worker(mids):
     """批量播放音乐的后台工作函数
@@ -126,8 +126,8 @@ def _batch_play_worker(mids):
                         # 获取所有音频会话
                         audio_sessions_result = get_all_audio_sessions(False)
                         
-                        if not audio_sessions_result.get("success", False):
-                            logger.warning(f"警告：获取音频会话失败: {audio_sessions_result.get('result', '未知错误')}")
+                        if not audio_sessions_result["success"]:
+                            logger.warning(f"获取音频会话失败: {audio_sessions_result.get('result', '未知错误')}")
                             time.sleep(1)
                             continue
                         
@@ -143,7 +143,7 @@ def _batch_play_worker(mids):
                         
                         # 如果播放器不在音频会话中，停止播放全部音乐
                         if not player_in_session:
-                            logger.warning(f"警告：默认播放器 '{default_player_name}' 不在音频会话中，停止播放全部音乐")
+                            logger.warning(f"默认播放器 '{default_player_name}' 不在音频会话中，停止播放全部音乐")
                             return  # 直接返回，停止整个批处理流程
                         
                         # 计算已播放时间
@@ -191,7 +191,7 @@ def _batch_play_worker(mids):
                                     return  # 直接返回，停止整个批处理流程
                         
                     except Exception as e:
-                        logger.warning(f"警告：检测播放器状态时出错: {str(e)}")
+                        logger.warning(f"检测播放器状态时出错: {str(e)}")
                     
                     # 每秒检查一次
                     time.sleep(1)

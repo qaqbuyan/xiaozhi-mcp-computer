@@ -165,11 +165,11 @@ class MusicPlayer:
                     # 如果没有找到指定的类型，取第一个可用的
                     first_key = next(iter(type_info))
                     bitrate_info = type_info[first_key]
-                    msg = f"警告：未找到指定的音质类型 {self.song_type}，将使用第一个可用类型 {first_key}"
+                    msg = f"未找到指定的音质类型 {self.song_type}，将使用第一个可用类型 {first_key}"
                     logger.warning(msg)
                 
                 if not bitrate_info:
-                    msg = f"错误：未找到音质详细信息 {self.song_type}"
+                    msg = f"未找到音质详细信息 {self.song_type}"
                     logger.error(msg)
                     return {
                         "success": False,
@@ -225,7 +225,7 @@ class MusicPlayer:
                 
                 singers = message.get("singer", [])
                 if not singers:
-                    msg = f"警告：未找到歌手信息 {song_name}"
+                    msg = f"未找到歌手信息 {song_name}"
                     logger.warning(msg)
                     return {
                         "success": False,
@@ -243,7 +243,7 @@ class MusicPlayer:
                 
                 interval = message.get("interval", "").replace(':', '_')
                 if not interval:
-                    msg = f"警告：未找到歌曲时长信息 {interval}"
+                    msg = f"未找到歌曲时长信息 {interval}"
                     logger.warning(msg)
                     return {
                         "success": False,
@@ -588,7 +588,7 @@ class MusicPlayer:
             # 验证内容类型
             content_type = response.headers.get('content-type', '')
             if not content_type or not ('audio' in content_type or 'octet-stream' in content_type):
-                msg = f"警告：响应内容类型不是预期的音频文件，而是: {content_type}"
+                msg = f"响应内容类型不是预期的音频文件，而是: {content_type}"
                 logger.warning(msg)
             
             # 保存文件
@@ -597,7 +597,7 @@ class MusicPlayer:
             # 文件大小
             total_size = int(response.headers.get('content-length', 0))
             if total_size == 0:
-                msg = "警告：下载的文件大小为0字节"
+                msg = "下载的文件大小为0字节"
                 logger.warning(msg)
                 return {
                     "success": False,

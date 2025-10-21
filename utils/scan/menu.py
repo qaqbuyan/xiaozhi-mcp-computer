@@ -18,12 +18,12 @@ def scan_menu():
         is_admin = False
     errors = []
     if sys.platform != 'win32':
-        error_msg = "错误：此脚本仅适用于 Windows 系统"
+        error_msg = "此脚本仅适用于 Windows 系统"
         logger.error(error_msg)
         errors.append(error_msg)
         return [], [], errors
     if not is_admin:
-        error_msg = "警告：建议以管理员权限运行此脚本以获取完整结果"
+        error_msg = "建议以管理员权限运行此脚本以获取完整结果"
         logger.error(error_msg)
         errors.append(error_msg)
     programs = []
