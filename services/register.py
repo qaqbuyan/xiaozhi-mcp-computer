@@ -1,6 +1,7 @@
 import io
 import sys
 import logging
+from handle.loader import load_config
 from mcp.server.fastmcp import FastMCP
 from utils.tools import register_alone
 from utils.file.tools import register_file
@@ -21,38 +22,51 @@ from utils.image_recognition.tools import register_image_recognition
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
+def register_tool(mcp: FastMCP, config_path: list, register_func, tool_name: str, logger):
+    """统一工具注册函数"""
+    # 获取配置
+    config = load_config()
+    tool_config = config
+    for key in config_path:
+        tool_config = tool_config.get(key, {})
+    
+    # 检查是否有启用的工具
+    has_tools = any(tool_config.values()) if isinstance(tool_config, dict) else False
+    
+    if has_tools:
+        # 注册工具
+        register_func(mcp)
+    else:
+        logger.info(f"所有{tool_name}工具已禁用，跳过注册")
+
 def register(mcp: FastMCP):
     """集中注册所有工具"""
     logger = logging.getLogger('集中注册')
     logger.info("进行所有工具注册...")
-    # 注册程序工具
-    register_application(mcp)
-    # 注册自动化工具
-    register_automation(mcp)
-    # 注册文件工具
-    register_file(mcp)
-    # 注册键盘工具
-    register_keyboard(mcp)
-    # 注册鼠标工具
-    register_mouse(mcp)
-    # 注册打开工具
-    register_open(mcp)
-    # 注册扫描工具
-    register_scan(mcp)
-    # 注册扬声器工具
-    register_speaker(mcp)
-    # 注册浏览器工具
-    register_browser(mcp)
-    # 注册单独工具
-    register_alone(mcp)
-    # 注册版本工具
+    
+    # 工具注册配置列表
+    tool_registrations = [
+        (['utils', 'application'], register_application, "程序"),
+        (['utils', 'automation', 'document'], register_automation, "自动化"),
+        (['utils', 'file'], register_file, "文件"),
+        (['utils', 'keyboard'], register_keyboard, "键盘"),
+        (['utils', 'mouse'], register_mouse, "鼠标"),
+        (['utils', 'open'], register_open, "打开"),
+        (['utils', 'scan'], register_scan, "扫描"),
+        (['utils', 'speaker'], register_speaker, "扬声器"),
+        (['utils', 'browser'], register_browser, "浏览器"),
+        (['utils', 'alone'], register_alone, "单独"),
+        (['utils', 'image_recognition'], register_image_recognition, "图像识别"),
+        (['utils', 'screenshot'], register_screenshot, "截图"),
+        (['utils', 'clipboard'], register_clipboard, "剪贴板"),
+        (['utils', 'music', 'module'], register_music, "音乐")
+    ]
+    
+    # 批量注册所有工具
+    for config_path, register_func, tool_name in tool_registrations:
+        register_tool(mcp, config_path, register_func, tool_name, logger)
+    
+    # 注册版本工具（无需配置检查）
     register_version(mcp)
-    # 注册图像识别工具
-    register_image_recognition(mcp)
-    # 注册截图工具
-    register_screenshot(mcp)
-    # 注册剪贴板工具
-    register_clipboard(mcp)
-    # 注册音乐工具
-    register_music(mcp)
+    
     logger.info("所有工具注册完成")

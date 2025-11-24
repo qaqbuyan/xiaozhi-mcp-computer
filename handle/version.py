@@ -34,6 +34,7 @@ def get_version(all_version: bool = False) -> dict:
                             "version": version_str,
                             "type": message.get('type', ''),
                             "content": message.get('content', ''),
+                            "requirements": message.get('requirements', ''),
                             "time": message.get('time', ''),
                             "link": message.get('link', ''),
                             "size": message.get('size', ''),
@@ -57,6 +58,7 @@ def get_version(all_version: bool = False) -> dict:
                 latest_version_number = None
                 latest_version_type = None
                 latest_content = ""
+                latest_requirements = ""
                 latest_link = ""
                 latest_type = ""
                 latest_size = ""
@@ -72,6 +74,7 @@ def get_version(all_version: bool = False) -> dict:
                             latest_version_number = version_number
                             latest_version_type = original_type
                             latest_content = message.get('content', '')
+                            latest_requirements = message.get('requirements', '')
                             latest_link = message.get('link', '')
                             latest_type = original_type
                             latest_size = message.get('size', '')
@@ -90,6 +93,7 @@ def get_version(all_version: bool = False) -> dict:
                         "current_version": current_version,
                         "latest_version": latest_version,
                         "update_log": latest_content,
+                        "requirements": latest_requirements,
                         "type": latest_type,
                         "link": latest_link,
                         "hash": latest_hash,

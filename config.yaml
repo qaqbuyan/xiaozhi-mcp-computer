@@ -1,5 +1,5 @@
 # 文件版本
-version: 0.2.5.1-rc
+version: 0.2.5.2-rc
 
 # MCP管道连接配置
 reconnection:
@@ -12,10 +12,94 @@ reconnection:
   # 当前退避时间(初始为1秒)
   backoff: 1
 
+# 模块配置
+module:
+  # 安装 系统级 模块
+  system: True
+  # 下载 源（https）
+  source: ""
+
 # 工具配置
 utils:
+  # 程序工具
+  application:
+    close: True
+    set_active: True
+  # 自动化工具
+  automation:
+    document:
+      xlsx: False
+      word: False
+  # 文件工具
+  file:
+    notepad: True
+    copy_file_or_folder: True
+    create_folder_or_file: True
+    delete_folder_or_file: True
+    modify_file_content: True
+    move_file_or_folder: True
+    rename_file_or_folder: True
+    cut_file_or_folder: True
+    paste_file_or_folder: True
+    get_file_or_folder_properties: True
+    empty_recycle_bin: True
+  # 键盘工具
+  keyboard:
+    combinatorial_input: True
+    control_keys: True
+  # 鼠标工具
+  mouse:
+    click: True
+    horizontal: True
+    scroll: True
+    long_press: True
+    position: True
+    region: True
+    identify_move_page_position: True
+    input_content_by_mouse_position: True
+  # 打开工具
+  open:
+    desktop: True
+    directory: True
+    website: True
+    program: True
+    file: True
+  # 扫描工具
+  scan:
+    directory: True
+    file: True
+  # 扬声器工具
+  speaker:
+    get_volume: True
+    set_volume: True
+    toggle_mute: True
+    get_audio_sessions: True
+    get_mute: True
+    set_app_volume: True
+  # 浏览器工具
+  browser:
+    bookmarks: True
+  # 图像识别工具
+  image_recognition:
+    text: True
+  # 截图工具
+  screenshot:
+    take: True
+  # 剪贴板工具
+  clipboard:
+    get_text: True
+    get_image: True
+  # 单独工具
+  alone:
+    system_status: True
+    download_file: True
+    run_command: True
   # 音乐工具
   music:
+    module:
+      request_song: True
+      play_song_list: True
+      play_new_song: True
     # 自定义请求头
     headers:
       User-Agent: "ESP32-Music-Player/1.0"

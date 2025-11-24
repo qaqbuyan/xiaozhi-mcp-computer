@@ -33,7 +33,7 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
 
 - 注意事项
     - 该项目需要使用 Python 3.13 以上版本
-    - 如果需要使用 播放音乐 功能，需要自建 API，可以参考 [点歌](https://github.com/qaqbuyan/xiaozhi-esp32-qq-music)
+    - 如果需要使用 播放音乐 功能，需要自建 API，可以参考 [音乐](https://github.com/qaqbuyan/qq-music-api)
     中关于 项目结构 中的 配套的音乐源代码
 
 &emsp;

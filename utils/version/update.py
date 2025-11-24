@@ -1,10 +1,12 @@
 import shutil
 import logging
+import threading
 from ruamel.yaml import YAML
 from handle.version import get_version
 from mcp.server.fastmcp import FastMCP
 from handle.path import get_config_path
 from utils.file.download import download_file
+from handle.install import install_requirements
 
 logger = logging.getLogger('版本更新')
 
@@ -45,7 +47,19 @@ def update_client(mcp: FastMCP):
                                     config['version'] = data['latest_version']
                                 with open(dst_config, 'w', encoding='utf-8') as f:
                                     yaml.dump(config, f)
-                                msg = f"文件下载成功，成功复制并更新配置文件到 {download_dir} 目录下"
+                                
+                                # 开启线程安装环境依赖
+                                if 'requirements' in data and data['requirements']:
+                                    install_thread = threading.Thread(
+                                        target=install_requirements, 
+                                        args=(data['requirements'],)
+                                    )
+                                    install_thread.daemon = True
+                                    install_thread.start()
+                                    msg = f"文件下载成功，成功复制并更新配置文件到 {download_dir} 目录下，正在后台安装环境依赖..."
+                                else:
+                                    msg = f"文件下载成功，成功复制并更新配置文件到 {download_dir} 目录下"
+                                
                                 logger.info(msg)
                                 return msg
                             except Exception as e:

@@ -1,4 +1,5 @@
 import logging
+from handle.loader import load_config
 from mcp.server.fastmcp import FastMCP
 from utils.file.modify_file import modify_file
 from utils.file.rename_file import rename_file
@@ -15,27 +16,52 @@ from utils.file.file_properties import get_file_or_folder_properties
 def register_file(mcp: FastMCP):
     """集中注册所有文件工具"""
     logger = logging.getLogger('文件工具')
+    
+    # 加载配置
+    config = load_config()
+    file_config = config.get('utils', {}).get('file', {})
+    
+    # 检查是否有任何工具需要注册
+    has_tools_to_register = any(file_config.values())
+    
+    if not has_tools_to_register:
+        logger.info("所有文件工具已禁用，跳过注册")
+        return
+    
     logger.info("开始注册...")
-    # 注册写入记事本的工具
-    temporary_write_to_notepad(mcp)
-    # 注册复制文件或文件夹的工具
-    copy_file_or_folder(mcp)
-    # 注册创建文件夹的工具
-    create_folder_or_file(mcp)
-    # 注册删除文件夹的工具
-    delete_folder_or_file(mcp)
-    # 注册修改文件的工具
-    modify_file(mcp)
-    # 注册移动文件或文件夹的工具
-    move_file_or_folder(mcp)
-    # 注册重命名文件的工具
-    rename_file(mcp)
-    # 注册剪切文件或文件夹的工具
-    cut_file_or_folder(mcp)
-    # 注册粘贴文件或文件夹的工具
-    paste_file_or_folder(mcp)
-    # 注册查看文件或文件夹属性的工具
-    get_file_or_folder_properties(mcp)
-    # 注册清空回收站的工具
-    empty_recycle_bin(mcp)
+    
+    # 根据配置注册对应的工具
+    if file_config.get('notepad', False):
+        temporary_write_to_notepad(mcp)
+    
+    if file_config.get('copy_file_or_folder', False):
+        copy_file_or_folder(mcp)
+    
+    if file_config.get('create_folder_or_file', False):
+        create_folder_or_file(mcp)
+    
+    if file_config.get('delete_folder_or_file', False):
+        delete_folder_or_file(mcp)
+    
+    if file_config.get('modify_file_content', False):
+        modify_file(mcp)
+    
+    if file_config.get('move_file_or_folder', False):
+        move_file_or_folder(mcp)
+    
+    if file_config.get('rename_file_or_folder', False):
+        rename_file(mcp)
+    
+    if file_config.get('cut_file_or_folder', False):
+        cut_file_or_folder(mcp)
+    
+    if file_config.get('paste_file_or_folder', False):
+        paste_file_or_folder(mcp)
+    
+    if file_config.get('get_file_or_folder_properties', False):
+        get_file_or_folder_properties(mcp)
+    
+    if file_config.get('empty_recycle_bin', False):
+        empty_recycle_bin(mcp)
+    
     logger.info("注册完成")
