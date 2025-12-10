@@ -17,7 +17,7 @@ from utils.clipboard.tools import register_clipboard
 from utils.automation.tools import register_automation
 from utils.screenshot.tools import register_screenshot
 from utils.application.tools import register_application
-from utils.image_recognition.tools import register_image_recognition
+from utils.image.tools import register_image
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
@@ -56,7 +56,7 @@ def register(mcp: FastMCP):
         (['utils', 'speaker'], register_speaker, "扬声器"),
         (['utils', 'browser'], register_browser, "浏览器"),
         (['utils', 'alone'], register_alone, "单独"),
-        (['utils', 'image_recognition'], register_image_recognition, "图像识别"),
+        (['utils', 'image'], register_image, "图像"),
         (['utils', 'screenshot'], register_screenshot, "截图"),
         (['utils', 'clipboard'], register_clipboard, "剪贴板"),
         (['utils', 'music', 'module'], register_music, "音乐")

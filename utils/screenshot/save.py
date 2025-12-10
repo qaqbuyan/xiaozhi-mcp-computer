@@ -10,7 +10,7 @@ def save_screenshot(save_dir: str = None) -> dict:
         if save_dir is None:
             # 获取当前运行目录
             current_dir = os.getcwd()
-            save_dir = os.path.join(current_dir, 'tem')
+            save_dir = os.path.join(current_dir, 'tmp')
         # 检查目录是否存在，不存在则创建
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)

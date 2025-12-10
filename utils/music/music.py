@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 logger = logging.getLogger('音乐信息')
 
-class MusicPlayer:
+class Music:
     def __init__(self):
         config = load_config()
         
@@ -35,7 +35,6 @@ class MusicPlayer:
         Returns:
             dict: 包含success和result两个键的字典
         """
-        logger.info("获取音乐信息")
         if not song_name:
             return {
                 "success": False,
@@ -384,10 +383,10 @@ class MusicPlayer:
                 "result": msg
             }
         
-        # 缓存文件路径
-        cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache")
+        current_working_dir = os.getcwd()
+        cache_dir = os.path.join(current_working_dir, "tmp")
         os.makedirs(cache_dir, exist_ok=True)
-        cache_file = os.path.join(cache_dir, f"{tid}.json")
+        cache_file = os.path.join(cache_dir, f"playlist_{tid}.json")
         
         # 检查缓存文件是否存在且在30分钟内
         if os.path.exists(cache_file):
@@ -448,7 +447,7 @@ class MusicPlayer:
                     "song_list": song_list
                 }
                 with open(cache_file, 'w', encoding='utf-8') as f:
-                    json.dump(cache_data, f, ensure_ascii=False, indent=2)
+                    json.dump(cache_data, f, ensure_ascii=False)
                 logger.info(f"歌单 {tid} 数据已缓存到: {cache_file}")
             except Exception as e:
                 logger.warning(f"保存缓存文件失败: {str(e)}")
@@ -524,11 +523,12 @@ class MusicPlayer:
                 "result": msg
             }
     
-    def download_music(self, download_link):
+    def download_music(self, download_link, unique_id=None):
         """下载音乐文件到tmp文件夹
         
         Args:
             download_link (str): 音乐下载链接
+            unique_id (str): 唯一标识符，用于生成唯一文件名
             
         Returns:
             dict: 包含success和result两个键的字典
@@ -559,20 +559,16 @@ class MusicPlayer:
                     "result": msg
                 }
             
-            # 定义文件路径，使用动态后缀名
-            file_path = os.path.join(tmp_dir, f"music{file_extension}")
-            
-            # 删除所有可能的音频格式文件
-            valid_audio_extensions = ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac']
-            for ext in valid_audio_extensions:
-                possible_file = os.path.join(tmp_dir, f"music{ext}")
-                if os.path.exists(possible_file):
-                    os.remove(possible_file)
-                    msg = f"已删除旧的音频文件: {possible_file}"
-                    logger.info(msg)
+            # 生成唯一文件名，避免覆盖
+            import uuid
+            if unique_id:
+                file_name = f"music_{unique_id}{file_extension}"
+            else:
+                file_name = f"music_{uuid.uuid4().hex[:8]}{file_extension}"
+            file_path = os.path.join(tmp_dir, file_name)
             
             # 下载文件
-            msg = f"正在下载音乐文件到: {file_path}"
+            msg = "正在下载音乐文件"
             logger.info(msg)
             response = requests.get(download_link, headers=self.headers, stream=True)
             
@@ -592,7 +588,7 @@ class MusicPlayer:
                 logger.warning(msg)
             
             # 保存文件
-            msg = f"开始保存音乐文件到: {file_path}"
+            msg = "开始保存音乐文件"
             logger.info(msg)
             # 文件大小
             total_size = int(response.headers.get('content-length', 0))
@@ -679,8 +675,12 @@ class MusicPlayer:
                 "album_name": ""
             }
         
+        # 生成唯一ID用于文件名
+        import uuid
+        unique_id = uuid.uuid4().hex[:8]
+        
         # 下载音乐
-        download_result = self.download_music(link_result["result"])
+        download_result = self.download_music(link_result["result"], unique_id)
         
         # 验证下载是否成功
         if not download_result or not download_result.get("success", False):
@@ -701,7 +701,7 @@ class MusicPlayer:
             current_working_dir = os.getcwd()
             tmp_dir = os.path.join(current_working_dir, "tmp")
             file_extension = self.get_music_extension(link_result["result"])
-            file_path = os.path.join(tmp_dir, f"music{file_extension}")
+            file_path = os.path.join(tmp_dir, f"music_{unique_id}{file_extension}")
             
             # 先将music_info_result["result"]解析为字典
             music_data = json.loads(music_info_result["result"])

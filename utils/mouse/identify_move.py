@@ -2,7 +2,7 @@ import logging
 from mcp.server.fastmcp import FastMCP
 from utils.mouse.move_area import move_area
 from utils.screenshot.save import save_screenshot
-from utils.image_recognition.identify import identify_image_text_coordinates
+from utils.image.identify_text_position import identify_image_text_coordinates
 
 logger = logging.getLogger('识别移动')
 
@@ -38,7 +38,7 @@ def identify_move_page_position(mcp: FastMCP):
         # 获取截图文件路径
         image = screenshot_result.get('result', '').split('屏幕截图已保存到 ')[-1].strip()
         # 调用图像识别函数
-        identify_result = identify_image_text_coordinates(image, 15)
+        identify_result = identify_image_text_coordinates(image)
         if not identify_result.get('success', False):
             return log_and_return_error("图像识别失败，终止操作: {}".format(identify_result.get('result', '')))
 

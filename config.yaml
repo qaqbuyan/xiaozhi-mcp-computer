@@ -1,5 +1,5 @@
-# 文件版本
-version: 0.2.5.2-rc
+# 程序版本
+version: 0.2.5.3-beta
 
 # MCP管道连接配置
 reconnection:
@@ -80,8 +80,14 @@ utils:
   browser:
     bookmarks: True
   # 图像识别工具
-  image_recognition:
-    text: True
+  image:
+    # 超时设置(秒)
+    timeout: 15
+    # 文本位置识别
+    text:
+      # 这个功能主要是鼠标精准移动到某个位置上,README.md中介绍了如何使用以及配置
+      position: True
+      ocr: ""
   # 截图工具
   screenshot:
     take: True
@@ -99,7 +105,7 @@ utils:
     module:
       request_song: True
       play_song_list: True
-      play_new_song: True
+      play_new_song: False
     # 自定义请求头
     headers:
       User-Agent: "ESP32-Music-Player/1.0"

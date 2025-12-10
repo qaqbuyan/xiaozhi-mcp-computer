@@ -51,4 +51,4 @@ async def monitor_player_status(default_player_name, total_seconds, file_name):
     
     # 如果是因为超时退出循环
     if time.time() - start_time >= total_seconds:
-        logger.info(f"播放器状态已更改，文件 {file_name} 播放时间已达到预期时长")
+        logger.info(f"播放器状态已更改，歌曲 {file_name} 播放时间已达到预期时长")

@@ -10,7 +10,7 @@ def take_screenshot(mcp: FastMCP):
         """进行屏幕截图并保存到指定路径。
         当需要进行屏幕截图时，立刻使用该工具。
         Args:
-            save_dir (str): 截图保存的目录，若未提供，则保存到当前运行目录下的 'tem' 文件夹。
+            save_dir (str): 截图保存的目录，若未提供，则保存到当前运行目录下的 'tmp' 文件夹。
         """
         logger.info("开始执行操作...")
         msg = save_screenshot(save_dir)

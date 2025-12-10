@@ -20,6 +20,18 @@ def register_music(mcp: FastMCP):
         logger.info("所有音乐工具已禁用，跳过注册")
         return
     
+    # 验证音乐API地址配置
+    music_config = config.get('utils', {}).get('music', {})
+    music_api = music_config.get('music_api', '')
+    
+    if not music_api:
+        logger.error("音乐API地址未配置，跳过音乐工具注册")
+        return
+    
+    if not music_api.startswith(('http://', 'https://')):
+        logger.error(f"无效的音乐API地址: {music_api}，必须以http://或https://开头，跳过音乐工具注册")
+        return
+    
     logger.info("开始注册...")
     
     # 根据配置注册对应的工具

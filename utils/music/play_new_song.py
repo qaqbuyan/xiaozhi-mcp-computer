@@ -1,6 +1,6 @@
 import logging
+from utils.music.music import Music
 from mcp.server.fastmcp import FastMCP
-from utils.music.music import MusicPlayer
 from utils.music.batch_play import batch_play_music
 
 logger = logging.getLogger('播放新歌')
@@ -18,7 +18,7 @@ def computer_play_new_song(mcp: FastMCP):
         """
         try:
             # 在主线程中获取新歌信息，以便在返回结果中包含第一个播放的歌曲信息
-            song_info = MusicPlayer().get_new_songs(type)
+            song_info = Music().get_new_songs(type)
             
             # 先判断song_info是否有效
             if song_info and isinstance(song_info, dict) and song_info.get('success'):
