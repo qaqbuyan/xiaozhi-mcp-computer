@@ -1,5 +1,6 @@
 # xiaozhi-mcp-computer
 小智一个控制电脑的接口集合框架，可以自行扩展AI能力，自带了一些常用的功能。
+这个项目已经具备了良好的基础，符合谷歌开发者规范的 核心原则
 
 ## 视频展示（v0.1.7-beta）
 https://www.bilibili.com/video/BV19x3bz7E8z/
@@ -129,6 +130,19 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
 - 电脑扬声器
     - 获取（程序）音量
     - 设置（程序）音量
+
+&emsp;
+
+## 编码错误
+    - 编码错误是指在使用该项目时，由于编码问题导致的错误
+    - 'utf-8' codec can't decode byte 0xc3 in position
+    - 解决方法：
+![解决方法](docs/solution.png)
+
+    - return "%s(<MULL>)" %type(self).name_
+        AtTRibuteERROr: class must define a "_type_" attribute
+    - 解决方法：
+![解决方法](docs/Solution.jpg)
 
 &emsp;
 

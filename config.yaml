@@ -1,5 +1,5 @@
 # 程序版本
-version: 0.2.5.3-beta
+version: 0.2.5.4-beta
 
 # MCP管道连接配置
 reconnection:
@@ -83,18 +83,20 @@ utils:
   image:
     # 超时设置(秒)
     timeout: 15
-    # 文本位置识别
+    # 文本位置
     text:
       # 这个功能主要是鼠标精准移动到某个位置上,README.md中介绍了如何使用以及配置
       position: True
       ocr: ""
+    # 图片描述
+    description: True
   # 截图工具
   screenshot:
     take: True
   # 剪贴板工具
   clipboard:
     get_text: True
-    get_image: True
+    get_image: False
   # 单独工具
   alone:
     system_status: True

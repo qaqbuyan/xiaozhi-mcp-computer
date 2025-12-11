@@ -1,4 +1,3 @@
-import json
 import logging
 import requests
 from handle.loader import load_config
@@ -9,7 +8,6 @@ def get_version(all_version: bool = False) -> dict:
     logger.info("进行获取版本更新...")
     config = load_config()
     current_version = config['version']
-    current_version_number, _, current_version_type = current_version.partition('-')
     user_agent = config.get('user_agent')
     url = 'https://qaqbuyan.com:88/乔安模块/?mk=sj&id=mcp-client'
     headers = {}
@@ -56,13 +54,22 @@ def get_version(all_version: bool = False) -> dict:
             else:
                 latest_version = None
                 latest_version_number = None
-                latest_version_type = None
                 latest_content = ""
                 latest_requirements = ""
                 latest_link = ""
                 latest_type = ""
                 latest_size = ""
                 latest_hash = ""
+                # 找出当前版本的依赖信息
+                current_requirements = ""
+                for message in messages:
+                    if isinstance(message, dict):
+                        version_str = message.get('version')
+                        version_number, _, version_type = version_str.partition('-')
+                        # 如果找到当前版本的依赖信息
+                        if f"{version_number}-{version_type}".lower() == current_version.lower():
+                            current_requirements = message.get('requirements', '')
+                            break
                 # 找出最新版本
                 for message in messages:
                     if isinstance(message, dict):
@@ -93,7 +100,8 @@ def get_version(all_version: bool = False) -> dict:
                         "current_version": current_version,
                         "latest_version": latest_version,
                         "update_log": latest_content,
-                        "requirements": latest_requirements,
+                        "current_requirements": current_requirements,
+                        "latest_requirements": latest_requirements,
                         "type": latest_type,
                         "link": latest_link,
                         "hash": latest_hash,

@@ -2,6 +2,7 @@ import logging
 from handle.loader import load_config
 from mcp.server.fastmcp import FastMCP
 from utils.image.text import get_image_recognition_text
+from utils.image.description import get_image_description
 
 def register_image(mcp: FastMCP):
     """集中注册所有图像识别工具"""
@@ -23,5 +24,9 @@ def register_image(mcp: FastMCP):
     # 根据配置注册对应的工具
     if image_config.get('text', {}).get('position', False):
         get_image_recognition_text(mcp)
+
+    # 图片描述
+    if image_config.get('description', False):
+        get_image_description(mcp)
     
     logger.info("注册完成")

@@ -2,13 +2,14 @@ import logging
 from mcp.server.fastmcp import FastMCP
 from utils.image.identify_text_position import identify_image_text_coordinates
 
-logger = logging.getLogger('图像文字识别')
+logger = logging.getLogger('图像文字')
 
 def get_image_recognition_text(mcp: FastMCP):
     """图像识别文字坐标工具"""
     @mcp.tool()
     def get_image_recognition_text(image: str) -> dict:
-        """用于识别图像中的文字以及坐标
+        """用于识别图像中的文字以及坐标，注意这是用来获取图像中的文字以及坐标，如果是图片描述或者图片文字描述，
+        请使用'get_image_description'工具
         用户需要识别图像中的文字或者及坐标时，立刻调用该工具，
         工具会返回图像中的文字以及坐标
         Args:

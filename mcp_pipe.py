@@ -202,8 +202,6 @@ async def main(args=None, on_process_end=None):
         logger.error(f"管道服务启动失败: {str(e)}")
         time.sleep(30)  # 等待30秒
         return 1
-        if args is None:
-            args = sys.argv[1:]
 
 if __name__ == "__main__":
     # 注册信号处理器

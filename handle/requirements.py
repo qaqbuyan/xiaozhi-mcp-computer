@@ -17,4 +17,5 @@ Pillow
 ruamel.yaml
 xlsxwriter
 python-docx
+getmac
 '''

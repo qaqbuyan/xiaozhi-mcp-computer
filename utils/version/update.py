@@ -7,6 +7,7 @@ from mcp.server.fastmcp import FastMCP
 from handle.path import get_config_path
 from utils.file.download import download_file
 from handle.install import install_requirements
+from utils.version.requirements import get_new_requirements
 
 logger = logging.getLogger('版本更新')
 
@@ -47,19 +48,30 @@ def update_client(mcp: FastMCP):
                                     config['version'] = data['latest_version']
                                 with open(dst_config, 'w', encoding='utf-8') as f:
                                     yaml.dump(config, f)
-                                
-                                # 开启线程安装环境依赖
-                                if 'requirements' in data and data['requirements']:
+                                # 比较依赖差异，只安装新增的依赖
+                                new_requirements = ""
+                                if 'current_requirements' in data and 'latest_requirements' in data:
+                                    new_requirements = get_new_requirements(data['current_requirements'], data['latest_requirements'])
+                                # 开启线程安装环境依赖（只安装新增的依赖）
+                                if new_requirements:
                                     install_thread = threading.Thread(
                                         target=install_requirements, 
-                                        args=(data['requirements'],)
+                                        args=(new_requirements,)
+                                    )
+                                    install_thread.daemon = True
+                                    install_thread.start()
+                                    msg = f"文件下载成功，成功复制并更新配置文件到 {download_dir} 目录下，正在后台安装新增的环境依赖: {new_requirements}..."
+                                elif 'latest_requirements' in data and data['latest_requirements']:
+                                    # 如果没有找到当前版本的依赖信息，则安装全部依赖
+                                    install_thread = threading.Thread(
+                                        target=install_requirements, 
+                                        args=(data['latest_requirements'],)
                                     )
                                     install_thread.daemon = True
                                     install_thread.start()
                                     msg = f"文件下载成功，成功复制并更新配置文件到 {download_dir} 目录下，正在后台安装环境依赖..."
                                 else:
                                     msg = f"文件下载成功，成功复制并更新配置文件到 {download_dir} 目录下"
-                                
                                 logger.info(msg)
                                 return msg
                             except Exception as e:

@@ -36,6 +36,7 @@ class MusicPlaybackManager:
         self.playback_lock = threading.Lock()
         self.stop_requested = False
         self.current_song_list_id = None
+        self.active_processes = []  # 记录所有活动的播放器进程
         
         # 初始化时清理所有临时音乐文件
         try:
@@ -318,11 +319,15 @@ class MusicPlaybackManager:
                 try:
                     if system == "Windows":
                         # 使用start命令启动播放器，不等待完成
-                        subprocess.Popen(["start", "", file_path], shell=True)
+                        process = subprocess.Popen(["start", "", file_path], shell=True)
                     elif system == "Darwin":
-                        subprocess.Popen(["open", file_path])
+                        process = subprocess.Popen(["open", file_path])
                     else:
-                        subprocess.Popen(["xdg-open", file_path])
+                        process = subprocess.Popen(["xdg-open", file_path])
+                    
+                    # 记录播放器进程
+                    with self.queue_lock:
+                        self.active_processes.append(process)
                     
                     logger.info(f"已使用系统默认播放器启动播放: {display_name}")
                 except Exception as e:
@@ -561,7 +566,33 @@ class MusicPlaybackManager:
                 else:
                     logger.info("当前播放线程已成功停止")
                 
-                # 3. 清理所有临时音乐文件
+                # 3. 终止所有活动的播放器进程
+                try:
+                    with self.queue_lock:
+                        if self.active_processes:
+                            logger.info(f"开始终止{len(self.active_processes)}个播放器进程...")
+                            terminated_count = 0
+                            for process in self.active_processes:
+                                try:
+                                    if process.poll() is None:  # 进程仍在运行
+                                        process.terminate()
+                                        process.wait(timeout=5)  # 等待进程终止
+                                        terminated_count += 1
+                                        logger.info(f"已终止播放器进程: PID {process.pid}")
+                                    else:
+                                        logger.info(f"播放器进程已停止: PID {process.pid}")
+                                except Exception as e:
+                                    logger.warning(f"终止播放器进程失败 (PID {process.pid}): {str(e)}")
+                            logger.info(f"共终止{terminated_count}个播放器进程")
+                            self.active_processes.clear()
+                        else:
+                            logger.info("没有活动的播放器进程需要终止")
+                except Exception as e:
+                    logger.error(f"终止播放器进程发生错误: {str(e)}")
+                    import traceback
+                    logger.error(f"详细错误信息: {traceback.format_exc()}")
+                
+                # 4. 清理所有临时音乐文件
                 try:
                     # 获取当前工作目录下的tmp文件夹路径
                     current_working_dir = os.getcwd()
