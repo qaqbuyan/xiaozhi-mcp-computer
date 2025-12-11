@@ -137,7 +137,7 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
     - 编码错误是指在使用该项目时，由于编码问题导致的错误
     - 'utf-8' codec can't decode byte 0xc3 in position
     - 解决方法：
-![解决方法](docs/solution.png)
+![解决方法](docs/Solution.png)
 
     - return "%s(<MULL>)" %type(self).name_
         AtTRibuteERROr: class must define a "_type_" attribute
