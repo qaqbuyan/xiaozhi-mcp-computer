@@ -3,6 +3,7 @@ import time
 import json
 import random
 import signal
+import atexit
 import asyncio
 import logging
 import websockets
@@ -19,6 +20,34 @@ INITIAL_BACKOFF = config['reconnection']['initial_backoff']
 MAX_BACKOFF = config['reconnection']['max_backoff']
 reconnect_attempt = config['reconnection']['reconnect_attempt']
 backoff = config['reconnection']['backoff']
+
+def cleanup_all_processes():
+    """清理所有相关进程的全局函数"""
+    logger.info("开始全局进程清理...")
+    try:
+        from utils.music.play import GlobalProcessManager
+        process_manager = GlobalProcessManager()
+        process_manager.cleanup_all_processes()
+        logger.info("全局进程清理完成")
+    except ImportError:
+        logger.info("音乐模块未加载，跳过进程清理")
+    except Exception as e:
+        logger.error(f"全局进程清理出错: {str(e)}")
+
+def signal_handler(signum, frame):
+    """信号处理器"""
+    logger.info(f"收到信号 {signum}，开始优雅退出...")
+    cleanup_all_processes()
+    sys.exit(0)
+
+# 注册信号处理器和atexit处理器
+for sig in [signal.SIGINT, signal.SIGTERM]:
+    try:
+        signal.signal(sig, signal_handler)
+    except (OSError, ValueError):
+        pass
+
+atexit.register(cleanup_all_processes)
 
 async def connect_with_retry(uri):
     """带重试机制的WebSocket服务器连接"""
@@ -71,14 +100,28 @@ async def connect_to_server(uri, on_process_end=None):
         raise  # 重新抛出异常
     finally:
         # 确保子进程被正确终止
-        if 'process' in locals():
-            logger.info("正在终止进程")
-            try:
-                process.terminate()
-                process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                process.kill()
-            logger.info("进程已终止")
+        try:
+            if 'process' in locals() and process.poll() is None:
+                logger.info("正在终止进程")
+                try:
+                    process.terminate()
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait(timeout=2)
+                logger.info("进程已终止")
+        except Exception as cleanup_error:
+            logger.error(f"清理进程时出错: {cleanup_error}")
+        
+        # 清理所有音乐相关进程
+        try:
+            from utils.music.play import GlobalProcessManager
+            process_manager = GlobalProcessManager()
+            process_manager.cleanup_all_processes()
+        except ImportError:
+            pass  # 如果音乐模块未加载，跳过清理
+        except Exception as music_cleanup_error:
+            logger.error(f"清理音乐进程时出错: {music_cleanup_error}")
 
 async def pipe_websocket_to_process(websocket, process):
     """从WebSocket读取数据并写入进程stdin"""
@@ -171,7 +214,8 @@ async def pipe_process_stderr_to_terminal(process, on_process_end=None):
 
 def signal_handler(sig, frame):
     """处理中断信号"""
-    logger.info("收到中断信号，正在关闭...")
+    logger.info(f"收到中断信号 {sig}，正在关闭...")
+    cleanup_all_processes()
     sys.exit(0)
 
 async def main(args=None, on_process_end=None):

@@ -1,3 +1,4 @@
+import time
 import logging
 from utils.music.music import Music
 from mcp.server.fastmcp import FastMCP
@@ -18,8 +19,16 @@ def computer_play_song_list(mcp: FastMCP):
             dict: 包含success和result两个键的字典
         """
         try:
+            # 记录开始时间，确保在MCP超时限制内完成（10秒）
+            start_time = time.time()
+            logger.info(f"开始处理歌单播放请求，歌单ID: {song_list}")
+            
             # 在主线程中获取歌单信息，以便在返回结果中包含第一个播放的歌曲信息
             song_info = Music().get_song_list(song_list)
+            
+            # 记录获取歌单信息耗时
+            get_list_time = time.time() - start_time
+            logger.info(f"获取歌单信息完成，耗时: {get_list_time:.2f}秒")
             
             # 先判断song_info是否有效
             if song_info and isinstance(song_info, dict) and song_info.get('success'):
@@ -52,6 +61,10 @@ def computer_play_song_list(mcp: FastMCP):
                         # 如果没有歌单正在播放，使用传统的批量播放
                         logger.info("当前没有歌单正在播放，开始新的歌单播放")
                         batch_play_song_list_with_queue(song_list_data, str(song_list))
+                    
+                    # 记录总耗时，确保在MCP超时限制内（10秒）
+                    total_time = time.time() - start_time
+                    logger.info(f"歌单播放请求处理完成，总耗时: {total_time:.2f}秒，即将返回响应")
                     
                     # 立即返回成功响应，包含第一个播放的歌曲信息
                     if first_song_name and first_singer_names:

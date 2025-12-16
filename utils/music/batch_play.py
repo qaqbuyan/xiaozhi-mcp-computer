@@ -1,6 +1,6 @@
 import logging
 import multiprocessing
-from utils.music.play import playback_manager
+from utils.music.play import playback_manager, GlobalProcessManager
 from utils.music.play_worker import _batch_play_worker
 
 logger = logging.getLogger('批量播放')
@@ -38,6 +38,10 @@ def batch_play_music(song_list):
         process.daemon = True
         process.start()
         
+        # 注册到全局进程管理器
+        process_manager = GlobalProcessManager()
+        process_manager.add_process(process)
+        
         # 记录日志
         logger.info(f"开始批量播放音乐任务，共{len(song_list)}首歌曲")
         msg_log = f"批量播放后台进程已启动，将播放{len(song_list)}首歌曲"
@@ -53,9 +57,13 @@ def batch_play_music(song_list):
     except Exception as e:
         return_msg = f"启动批量播放后台进程失败: {str(e)}"
     
-    # 立即返回成功信息，不阻塞主流程
-    logger.info(return_msg)
-    return {"success": True, "result": return_msg}
+    # 记录总耗时
+        total_time = time.time() - start_time
+        logger.info(f"批量播放函数执行完成，总耗时: {total_time:.2f}秒")
+        
+        # 立即返回成功信息，不阻塞主流程
+        logger.info(return_msg)
+        return {"success": True, "result": return_msg}
 
 def batch_play_song_list_with_queue(song_list, song_list_id=None):
     """使用播放队列管理批量播放歌单
@@ -67,6 +75,9 @@ def batch_play_song_list_with_queue(song_list, song_list_id=None):
     Returns:
         dict: 包含success和result两个键的字典
     """
+    import time
+    start_time = time.time()
+    
     # 立即检查song_list参数（在主线程中快速完成）
     if not song_list or not isinstance(song_list, list):
         msg = "song_list参数必须是一个非空数组"
@@ -79,6 +90,10 @@ def batch_play_song_list_with_queue(song_list, song_list_id=None):
     first_singer_names = first_song.get('singer_names', '未知歌手')
     
     try:
+        # 记录准备时间
+        prepare_time = time.time() - start_time
+        logger.info(f"批量播放准备完成，耗时: {prepare_time:.2f}秒，即将调用播放管理器")
+        
         # 使用播放管理器清理队列并播放新的歌单
         playback_manager.clear_queue_and_play_song_list(song_list, song_list_id)
         

@@ -1,5 +1,5 @@
 # 程序版本
-version: 0.2.5.4-beta
+version: 0.2.5.5-rc
 
 # MCP管道连接配置
 reconnection:
@@ -16,8 +16,10 @@ reconnection:
 module:
   # 安装 系统级 模块
   system: True
-  # 下载 源（https）
-  source: ""
+  # 下载 源
+  source: "" # 对于conda可以是频道名，对于pip必须是URL
+  # 环境变量
+  environment: "" # 可以是"conda"、"anaconda"或留空使用默认pip
 
 # 工具配置
 utils:

@@ -1,5 +1,9 @@
 import os
+import sys
 import time
+import atexit
+import signal
+import psutil
 import asyncio
 import logging
 import threading
@@ -10,6 +14,111 @@ from utils.file.default_handler import get_default_file_handler
 from utils.speaker.get_audio_sessions import get_all_audio_sessions
 
 logger = logging.getLogger('音乐播放')
+
+# 全局进程管理器
+class GlobalProcessManager:
+    """全局进程管理器，确保所有子进程都能被正确清理"""
+    _instance = None
+    _lock = threading.Lock()
+    
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance._initialize()
+        return cls._instance
+    
+    def _initialize(self):
+        self.all_processes = []  # 所有需要管理的进程
+        self.process_lock = threading.Lock()
+        self.cleanup_registered = False
+        self._register_cleanup_handlers()
+    
+    def _register_cleanup_handlers(self):
+        """注册清理处理器"""
+        if not self.cleanup_registered:
+            # 注册atexit处理器
+            atexit.register(self.cleanup_all_processes)
+            
+            # 注册信号处理器
+            def signal_handler(signum, frame):
+                logger.info(f"收到信号 {signum}，开始清理所有进程...")
+                self.cleanup_all_processes()
+                sys.exit(0)
+            
+            # 注册常见终止信号
+            for sig in [signal.SIGINT, signal.SIGTERM, signal.SIGBREAK]:
+                try:
+                    signal.signal(sig, signal_handler)
+                except (OSError, ValueError):
+                    pass  # 某些信号在某些平台上不可用
+            
+            self.cleanup_registered = True
+    
+    def add_process(self, process):
+        """添加进程到管理列表"""
+        with self.process_lock:
+            self.all_processes.append(process)
+            logger.info(f"添加进程到管理列表: PID {process.pid if hasattr(process, 'pid') else 'unknown'}")
+    
+    def remove_process(self, process):
+        """从管理列表移除进程"""
+        with self.process_lock:
+            if process in self.all_processes:
+                self.all_processes.remove(process)
+                logger.info(f"从管理列表移除进程: PID {process.pid if hasattr(process, 'pid') else 'unknown'}")
+    
+    def cleanup_all_processes(self):
+        """清理所有管理的进程"""
+        with self.process_lock:
+            if not self.all_processes:
+                return
+            
+            logger.info(f"开始清理 {len(self.all_processes)} 个管理的进程...")
+            terminated_count = 0
+            
+            for process in self.all_processes[:]:
+                try:
+                    if hasattr(process, 'is_alive') and process.is_alive():
+                        # multiprocessing.Process
+                        process.terminate()
+                        process.join(timeout=3)
+                        if process.is_alive():
+                            process.kill()
+                        terminated_count += 1
+                        logger.info(f"已终止multiprocessing进程: PID {process.pid}")
+                    
+                    elif hasattr(process, 'poll') and process.poll() is None:
+                        # subprocess.Popen
+                        process.terminate()
+                        try:
+                            process.wait(timeout=3)
+                        except subprocess.TimeoutExpired:
+                            process.kill()
+                        terminated_count += 1
+                        logger.info(f"已终止subprocess进程: PID {process.pid}")
+                    
+                    else:
+                        # 尝试通过PID终止
+                        if hasattr(process, 'pid') and process.pid:
+                            try:
+                                parent = psutil.Process(process.pid)
+                                for child in parent.children(recursive=True):
+                                    child.terminate()
+                                parent.terminate()
+                                parent.wait(timeout=3)
+                                terminated_count += 1
+                                logger.info(f"已终止进程树: PID {process.pid}")
+                            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                                pass
+                
+                except Exception as e:
+                    logger.warning(f"终止进程失败: {str(e)}")
+            
+            self.all_processes.clear()
+            logger.info(f"进程清理完成，共终止 {terminated_count} 个进程")
+
 
 # 全局播放状态管理
 class MusicPlaybackManager:
@@ -26,6 +135,7 @@ class MusicPlaybackManager:
         return cls._instance
     
     def _initialize(self):
+        self.process_manager = GlobalProcessManager()  # 获取进程管理器实例
         self.is_playing = False
         self.current_file = None
         self.current_player = None
@@ -325,7 +435,10 @@ class MusicPlaybackManager:
                     else:
                         process = subprocess.Popen(["xdg-open", file_path])
                     
-                    # 记录播放器进程
+                    # 记录播放器进程到全局管理器
+                    self.process_manager.add_process(process)
+                    
+                    # 同时记录到本地列表用于快速访问
                     with self.queue_lock:
                         self.active_processes.append(process)
                     
@@ -481,6 +594,10 @@ class MusicPlaybackManager:
             )
             process.daemon = True
             process.start()
+            
+            # 注册到全局进程管理器
+            self.process_manager.add_process(process)
+            
             logger.info("已立即启动歌单播放后台进程")
             
         except Exception as e:
@@ -591,7 +708,7 @@ class MusicPlaybackManager:
                     logger.error(f"终止播放器进程发生错误: {str(e)}")
                     import traceback
                     logger.error(f"详细错误信息: {traceback.format_exc()}")
-                
+                    
                 # 4. 清理所有临时音乐文件
                 try:
                     # 获取当前工作目录下的tmp文件夹路径
@@ -630,6 +747,54 @@ class MusicPlaybackManager:
         thread = threading.Thread(target=_stop_and_cleanup, daemon=True)
         thread.start()
         logger.info("停止播放任务已提交到后台线程处理")
+    
+    def cleanup_all_processes(self):
+        """清理所有管理的进程"""
+        logger.info("开始清理所有管理的进程...")
+        terminated_count = 0
+        
+        try:
+            # 终止所有活动的播放器进程
+            with self.queue_lock:
+                if self.active_processes:
+                    logger.info(f"开始终止{len(self.active_processes)}个播放器进程...")
+                    for process in self.active_processes[:]:
+                        try:
+                            if process.poll() is None:  # 进程仍在运行
+                                process.terminate()
+                                process.wait(timeout=5)  # 等待进程终止
+                                terminated_count += 1
+                                logger.info(f"已终止播放器进程: PID {process.pid}")
+                            else:
+                                logger.info(f"播放器进程已停止: PID {process.pid}")
+                        except Exception as e:
+                            logger.warning(f"终止播放器进程失败 (PID {process.pid}): {str(e)}")
+                    
+                    logger.info(f"共终止{terminated_count}个播放器进程")
+                    self.active_processes.clear()
+                else:
+                    logger.info("没有活动的播放器进程需要终止")
+        except Exception as e:
+            logger.error(f"终止播放器进程发生错误: {str(e)}")
+            import traceback
+            logger.error(f"详细错误信息: {traceback.format_exc()}")
+        
+        logger.info(f"进程清理完成，共终止 {terminated_count} 个进程")
+    
+    def get_active_processes_info(self):
+        """获取当前活跃进程信息，用于调试"""
+        with self.queue_lock:
+            active_processes = []
+            for process in self.active_processes:
+                try:
+                    if hasattr(process, 'poll') and process.poll() is None:
+                        active_processes.append(f"subprocess.PID:{process.pid}")
+                    elif hasattr(process, 'pid') and process.pid:
+                        active_processes.append(f"PID:{process.pid}")
+                except:
+                    pass
+            return active_processes
+
 
 # 全局播放管理器实例
 playback_manager = MusicPlaybackManager()
