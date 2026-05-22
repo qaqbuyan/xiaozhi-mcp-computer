@@ -2,12 +2,14 @@ import os
 import shutil
 import logging
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('删除文件')
 
 def delete_folder_or_file(mcp: FastMCP):
     @mcp.tool()
-    def delete_folder_or_file(path: str, clear_content: bool = False) -> dict:
+    @ask_on_missing('path')
+    def delete_folder_or_file(path: str = None, clear_content: bool = False) -> dict:
         """删除指定路径的文件或文件夹，或清空文件内容
         Args:
             path (str): 要操作的路径，可以是文件或文件夹路径

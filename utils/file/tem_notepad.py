@@ -5,12 +5,14 @@ import tempfile
 import subprocess
 from mcp.server.fastmcp import FastMCP
 from utils.application.check_activity import get_window_active
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('临时写入')
 
 def temporary_write_to_notepad(mcp: FastMCP):
     @mcp.tool()
-    def temporary_write_to_notepad(content: str) -> dict:
+    @ask_on_missing('content')
+    def temporary_write_to_notepad(content: str = None) -> dict:
         """用于使用记事本打开文件并写入指定内容。
         当需要临时存储内容，或者将内容保存到文件，或者通过记事本展示给用户时，立刻使用此工具。
         Args:

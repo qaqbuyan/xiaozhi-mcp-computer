@@ -2,12 +2,14 @@ import os
 import psutil
 import logging
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('关闭程序')
 
 def close_application(mcp: FastMCP):
     @mcp.tool()
-    def close_application(process_name: str) -> dict:
+    @ask_on_missing('process_name')
+    def close_application(process_name: str = None) -> dict:
         """关闭指定名称的程序，若程序未响应则尝试强制终止。
         当需要关闭某个程序时，立刻使用该工具。
         Args:

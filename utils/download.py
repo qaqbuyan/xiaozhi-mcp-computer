@@ -1,12 +1,14 @@
 import logging
 from mcp.server.fastmcp import FastMCP
 from utils.file.download import download_file
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('文件下载')
 
 def download_url_file(mcp: FastMCP):
     @mcp.tool()
-    def download_url_file(url: str, save_path: str = None, request_headers: dict = None) -> str:
+    @ask_on_missing('url')
+    def download_url_file(url: str = None, save_path: str = None, request_headers: dict = None) -> str:
         """用于下载指定 URL 的文件到指定文件夹。
         当需要下载文件时，立刻使用该工具。
         若 URL 无效或下载过程中出现错误，将输出错误信息。

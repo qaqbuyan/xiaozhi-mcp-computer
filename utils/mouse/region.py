@@ -1,12 +1,14 @@
 import logging
 from mcp.server.fastmcp import FastMCP
 from utils.mouse.move_area import move_area
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('鼠标区域移动')
 
 def move_mouse_region(mcp: FastMCP):
     @mcp.tool()
-    def move_mouse_region(coordinates) -> dict:
+    @ask_on_missing('coordinates')
+    def move_mouse_region(coordinates=None) -> dict:
         """将鼠标指针移动到指定区域的中心点上。
         当需要移动鼠标到指定区域中时，立刻调用该工具，无需确认。
         Args:

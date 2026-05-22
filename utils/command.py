@@ -2,12 +2,14 @@ import re
 import logging
 import subprocess
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('执行命令')
 
 def run_computer_command(mcp: FastMCP):
     @mcp.tool()
-    def run_computer_command(command_str: str) -> str:
+    @ask_on_missing('command_str')
+    def run_computer_command(command_str: str = None) -> str:
         """在电脑终端（Windows）运行传入的命令，并打印命令的状态和结果。
         Args:
             command_str (str): （必填）要运行的命令，字符串类型，例如：'ping qaqbuyan.com'

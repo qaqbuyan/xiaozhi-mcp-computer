@@ -1,12 +1,14 @@
 import os
 import logging
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('扫描文件夹')
 
 def scan_folder_or_file(mcp: FastMCP):
     @mcp.tool()
-    def scan_folder_or_file(path: str, file_ext: str = '') -> dict:
+    @ask_on_missing('path')
+    def scan_folder_or_file(path: str = None, file_ext: str = '') -> dict:
         """扫描指定路径下的所有文件夹或特定类型文件，当需要查询桌面或菜单文件或者程序时，立刻使用 'scan_statistics' 工具
         当需要查询文件夹或文件时，立刻使用该工具。
         Args:

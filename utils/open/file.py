@@ -2,12 +2,14 @@ import os
 import logging
 import subprocess
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('打开文件')
 
 def open_file(mcp: FastMCP):
     @mcp.tool()
-    def open_file(file_path: str) ->str:
+    @ask_on_missing('file_path')
+    def open_file(file_path: str = None) ->str:
         """用于打开指定路径的文件，支持 img、word(docx)、excel、ppt、pdf 等文件格式。
         当需要某一个文件时，立刻使用该工具。
         Notice：

@@ -2,12 +2,14 @@ import os
 import shutil
 import logging
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('复制文件或文件夹')
 
 def copy_file_or_folder(mcp: FastMCP):
     @mcp.tool()
-    def copy_file_or_folder(source: str, destination: str) -> dict:
+    @ask_on_missing('source', 'destination')
+    def copy_file_or_folder(source: str = None, destination: str = None) -> dict:
         """复制指定的文件或文件夹到目标地址。
         当需要复制文件或文件夹时，立刻使用该工具。
         Args:

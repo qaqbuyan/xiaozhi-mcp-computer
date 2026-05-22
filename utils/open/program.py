@@ -3,12 +3,14 @@ import logging
 import platform
 import subprocess
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('打开程序')
 
 def open_program(mcp: FastMCP):
     @mcp.tool()
-    def open_program(program_path: str) -> dict:
+    @ask_on_missing('program_path')
+    def open_program(program_path: str = None) -> dict:
         """用于打开程序或快捷方式。当需要打开桌面或者菜单程序时，立刻使用该工具。
         Args:
             program_path (str): 程序或快捷方式的路径,

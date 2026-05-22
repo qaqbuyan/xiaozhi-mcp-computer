@@ -1,12 +1,14 @@
 import logging
 import webbrowser
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('打开网站')
 
 def open_website(mcp: FastMCP):
     @mcp.tool()
-    def open_website(url: str) -> dict:
+    @ask_on_missing('url')
+    def open_website(url: str = None) -> dict:
         """用于打开指定的网站URL。
         当需要帮忙打开网页或打开网站时，立刻使用该工具
         比如用户说打开百度，你就会使用这个工具

@@ -2,12 +2,14 @@ import time
 import logging
 import pyautogui
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('键盘模拟')
 
 def keyboard_operations(mcp: FastMCP):
     @mcp.tool()
-    def keyboard_operations(input_value: str, is_key_press: bool = True) -> dict:
+    @ask_on_missing('input_value')
+    def keyboard_operations(input_value: str = None, is_key_press: bool = True) -> dict:
         """用于模拟键盘操作，包括按键(组合键)和输入字符串。
         组合键：
             1.组合键的格式为：'ctrl+a'，表示同时按下 ctrl 和 a 键。

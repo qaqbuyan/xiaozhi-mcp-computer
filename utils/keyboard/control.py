@@ -1,12 +1,14 @@
 import logging
 import pyautogui
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('键盘控制')
 
 def control_key_operations(mcp: FastMCP):
     @mcp.tool()
-    def control_key(input_value: str, long_press: bool = True) -> dict:
+    @ask_on_missing('input_value')
+    def control_key(input_value: str = None, long_press: bool = True) -> dict:
         """控制键盘按键的按下和松开。
         当需要模拟键盘按键操作时，立刻调用该工具，
         工具会执行相应的按键操作

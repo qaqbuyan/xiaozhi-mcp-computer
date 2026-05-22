@@ -1,12 +1,14 @@
 import os
 import logging
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('修改文件')
 
 def modify_file(mcp: FastMCP):
     @mcp.tool()
-    def modify_file_content(file_path: str, new_content: str, overwrite: bool = True) -> dict:
+    @ask_on_missing('file_path', 'new_content')
+    def modify_file_content(file_path: str = None, new_content: str = None, overwrite: bool = True) -> dict:
         """修改指定文件的内容
         Args:
             file_path (str): 要修改的文件路径，必须

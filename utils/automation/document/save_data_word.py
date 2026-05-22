@@ -2,12 +2,14 @@ import os
 import logging
 from docx import Document
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('保存Word')
 
 def save_data_to_word(mcp: FastMCP):
     @mcp.tool()
-    def save_content_to_word(content: str, save_dir: str, file_name: str) -> str:
+    @ask_on_missing('content', 'save_dir', 'file_name')
+    def save_content_to_word(content: str = None, save_dir: str = None, file_name: str = None) -> str:
         """将内容保存到指定目录下的 Word 文件
         如果保存成功询问用户是否打开文件，如果需要请立刻使用 ’open_file’ 工具来打开
         Args:

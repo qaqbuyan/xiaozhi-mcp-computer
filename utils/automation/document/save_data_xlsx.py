@@ -2,12 +2,14 @@ import os
 import logging
 import xlsxwriter
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('保存xlsx')
 
 def save_data_to_xlsx(mcp: FastMCP):
     @mcp.tool()
-    def save_data_to_xlsx(data: list, file_name: str, save_dir: str) -> str: 
+    @ask_on_missing('data', 'file_name', 'save_dir')
+    def save_data_to_xlsx(data: list = None, file_name: str = None, save_dir: str = None) -> str: 
         """将数据存储为 xlsx 文件
         如果保存成功询问用户是否打开文件，如果需要请立刻使用 ’open_file’ 工具来打开
         Args:

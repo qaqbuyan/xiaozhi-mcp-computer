@@ -1,12 +1,14 @@
 import os
 import logging
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('查看文件或文件夹属性')
 
 def get_file_or_folder_properties(mcp: FastMCP):
     @mcp.tool()
-    def get_file_or_folder_properties(path: str) -> dict:
+    @ask_on_missing('path')
+    def get_file_or_folder_properties(path: str = None) -> dict:
         """查看指定文件或文件夹的属性。
         当需要查看文件或文件夹属性时，立刻使用该工具。
         Args:

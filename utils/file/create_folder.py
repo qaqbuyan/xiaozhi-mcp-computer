@@ -1,12 +1,14 @@
 import os
 import logging
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('创建写入')
 
 def create_folder_or_file(mcp: FastMCP):
     @mcp.tool()
-    def create_folder_or_file(path: str, content: str = '') -> dict:
+    @ask_on_missing('path')
+    def create_folder_or_file(path: str = None, content: str = '') -> dict:
         """创建指定路径的文件或文件夹，并写入可选的文本内容。
         当需要创建文件写入内容或文件夹时，立刻使用该工具。
         Args:

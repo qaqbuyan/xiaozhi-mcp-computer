@@ -2,12 +2,14 @@ import logging
 from utils.scan.menu import scan_menu
 from mcp.server.fastmcp import FastMCP
 from utils.scan.desktop import scan_desktop
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('扫描统计')
 
 def scan_statistics(mcp: FastMCP):
     @mcp.tool()
-    def scan_statistics(file_or_program: str) -> dict:
+    @ask_on_missing('file_or_program')
+    def scan_statistics(file_or_program: str = None) -> dict:
         """用于扫描桌面以及菜单的程序跟目录，当需要查询桌面或菜单文件或者程序时，立刻使用该工具。
         一律使用该工具扫描，找不到才使用 'scan_folder_or_file' 工具。
         比如我说扫描桌面某一个文件或文件夹等，就会使用这个工具

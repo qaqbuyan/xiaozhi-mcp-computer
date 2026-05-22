@@ -1,12 +1,14 @@
 import logging
 from mcp.server.fastmcp import FastMCP
 from utils.music.search_name import search_name_play
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('播放歌曲')
 
 def computer_play_song(mcp: FastMCP):
     @mcp.tool()
-    def computer_play_song(song_name: str, singer_name: str) -> dict:
+    @ask_on_missing('song_name')
+    def computer_play_song(song_name: str = None, singer_name: str = '') -> dict:
         """用于在电脑上播放指定的音乐
         当用户需要在电脑上播放指定的音乐时，立刻使用该工具。
         Args:

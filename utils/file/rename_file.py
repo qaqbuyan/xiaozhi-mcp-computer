@@ -1,12 +1,14 @@
 import os
 import logging
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('重命名文件')
 
 def rename_file(mcp: FastMCP):
     @mcp.tool()
-    def rename_file_or_folder(old_path: str, new_name: str) -> dict:
+    @ask_on_missing('old_path', 'new_name')
+    def rename_file_or_folder(old_path: str = None, new_name: str = None) -> dict:
         """修改文件或文件夹的名称
         Args:
             old_path (str): 原文件/文件夹路径

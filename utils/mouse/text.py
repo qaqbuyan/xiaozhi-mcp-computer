@@ -4,12 +4,14 @@ import platform
 import pyautogui
 import pyperclip
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('输入文本')
 
 def input_content_by_mouse_position(mcp: FastMCP):
     @mcp.tool()
-    def input_content_by_mouse_position(text) -> str:
+    @ask_on_missing('text')
+    def input_content_by_mouse_position(text=None) -> str:
         """鼠标位置输入（写入）文本（文字）
         Use:
             1.用户需要输入（写入）文本时，立刻调用该工具

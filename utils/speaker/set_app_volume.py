@@ -1,12 +1,14 @@
 import logging
 from mcp.server.fastmcp import FastMCP
 from pycaw.pycaw import AudioUtilities
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('设置应用音量')
 
 def set_app_volume(mcp: FastMCP):
     @mcp.tool()
-    def set_app_volume(app_name: str, level: float) -> str:
+    @ask_on_missing('app_name', 'level')
+    def set_app_volume(app_name: str = None, level: float = None) -> str:
         """
         设置指定应用程序的音量
         Args:

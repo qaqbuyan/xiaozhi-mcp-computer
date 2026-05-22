@@ -4,12 +4,14 @@ import logging
 from mcp.server.fastmcp import FastMCP
 from utils.application.find_title import find_window_by_title
 from utils.application.check_activity import get_window_active
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('设置窗口状态')
 
 def set_window_active_tool(mcp: FastMCP):
     @mcp.tool()
-    def set_window_active(window_title: str) -> dict:
+    @ask_on_missing('window_title')
+    def set_window_active(window_title: str = None) -> dict:
         """
         设置指定标题的窗口为活动状态
         Args:

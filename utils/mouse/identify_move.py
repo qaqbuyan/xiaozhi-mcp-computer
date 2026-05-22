@@ -3,6 +3,7 @@ from mcp.server.fastmcp import FastMCP
 from utils.mouse.move_area import move_area
 from utils.screenshot.save import save_screenshot
 from utils.image.identify_text_position import identify_image_text_coordinates
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('识别移动')
 
@@ -12,7 +13,8 @@ def log_and_return_error(message: str) -> dict:
 
 def identify_move_page_position(mcp: FastMCP):
     @mcp.tool()
-    def identify_move_page_position(characters: str) -> dict:
+    @ask_on_missing('characters')
+    def identify_move_page_position(characters: str = None) -> dict:
         """将鼠标移动页面(屏幕)上的某个(些)文字的位置
         Use:
             1.用户要求点击(移动)页面(屏幕)上的某个(些)文字时，立刻调用该工具，如果成功了就告诉用户我已经点击(移动)成功了

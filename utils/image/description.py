@@ -2,13 +2,15 @@ import logging
 from mcp.server.fastmcp import FastMCP
 from utils.clipboard.get_image import get_image
 from utils.image.identify_description import identify_description
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('图像描述')
 
 def get_image_description(mcp: FastMCP):
     """图像描述工具"""
     @mcp.tool()
-    def get_image_description(question: str, img_path: str) -> dict:
+    @ask_on_missing('question')
+    def get_image_description(question: str = None, img_path: str = None) -> dict:
         """用于描述图像信息，用户需要询问图像(剪切板的图片)中的信息时，立刻调用该工具。
         比如用户说"请描述图片内容"，立刻调用该工具，工具会返回图像中的描述。
         注意：

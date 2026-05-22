@@ -4,12 +4,14 @@ from utils.music.music import Music
 from mcp.server.fastmcp import FastMCP
 from utils.music.play import playback_manager
 from utils.music.batch_play import batch_play_song_list_with_queue
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('播放歌单')
 
 def computer_play_song_list(mcp: FastMCP):
     @mcp.tool()
-    def computer_play_song_list(song_list: int, shuffle: bool = False) -> dict:
+    @ask_on_missing('song_list')
+    def computer_play_song_list(song_list: int = None, shuffle: bool = False) -> dict:
         """用于在电脑上批量播放歌单列表
         当用户需要在电脑上批量播放歌单列表时，立刻使用该工具。
         Args:

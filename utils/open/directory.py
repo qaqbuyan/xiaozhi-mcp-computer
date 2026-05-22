@@ -3,12 +3,14 @@ import logging
 import platform
 import subprocess
 from mcp.server.fastmcp import FastMCP
+from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('打开目录')
 
 def open_directory(mcp: FastMCP):
     @mcp.tool()
-    def open_directory(directory_path: str) -> dict:
+    @ask_on_missing('directory_path')
+    def open_directory(directory_path: str = None) -> dict:
         """用于打开指定目录。当需要打开桌面或者菜单目录时，立刻使用该工具。"""
         logger.info(f"尝试打开目录: {directory_path}")
         # 确保目录存在且是有效路径
