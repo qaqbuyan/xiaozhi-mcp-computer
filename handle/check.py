@@ -9,7 +9,6 @@ logger = setup_logging()
 logger = logging.getLogger('环境检查')
 
 def check_packages():
-    logger.info('检查环境...')
     # 将需求字符串转换为列表
     req_list = [req.strip() for req in requirements.strip().split('\n')]
     missing_packages = []
@@ -23,10 +22,10 @@ def check_packages():
         installed_packages = installed_packages_output.lower().split('\n')
     except subprocess.CalledProcessError as e:
         try:
-            error_msg = e.stderr.decode('utf-8')
+            stderr_text = e.stderr.decode('utf-8')
         except UnicodeDecodeError:
-            error_msg = e.stderr.decode('gbk')
-        logger.error(f'获取已安装库列表时出错: {error_msg}')
+            stderr_text = e.stderr.decode('gbk')
+        logger.error(f'获取已安装库列表时出错（返回码 {e.returncode}）: {stderr_text}')
         installed_packages = []  # 出错时设置为空列表，继续后续检查
     # 检查每个包是否安装
     for req in req_list:
@@ -41,8 +40,8 @@ def check_packages():
         if not found:
             missing_packages.append(req)
     if missing_packages:
-        logger.info('发现缺失的库，正在安装...')
         for package in missing_packages:
+            logger.info(f'发现缺失的库 {package}，正在安装...')
             try:
                 subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
                 logger.info(f'{package} 安装成功')

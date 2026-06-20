@@ -5,17 +5,18 @@ from utils.music.play import play_music, playback_manager
 
 logger = logging.getLogger('音乐搜索')
 
-def search_name_play(song_name: str, singer_name: str = "") -> dict:
+def search_name_play(song_name: str, singer_name: str = "", force: bool = False) -> dict:
     """根据歌曲名和歌手名搜索并播放音乐
     
     Args:
         song_name (str): 歌曲名
         singer_name (str): 歌手名（可选）
+        force (bool): 是否强制添加。为True时即使歌曲已在队列中也重新添加；为False时如果已在队列则跳过
         
     Returns:
         dict: 包含播放状态的字典
     """
-    logger.info(f"搜索并播放音乐: {song_name} - {singer_name}")
+    logger.info(f"搜索并播放音乐: {song_name} - {singer_name}，force={force}")
     
     # 参数验证
     if not song_name:
@@ -25,6 +26,31 @@ def search_name_play(song_name: str, singer_name: str = "") -> dict:
             "success": False,
             "result": msg
         }
+    
+    # 去重检测：如果歌曲已在队列/播放中/处理中，且不是强制添加，则直接返回
+    if not force and playback_manager.is_song_in_queue_or_pending(song_name, singer_name):
+        playback_info = playback_manager.get_current_playback_info()
+        msg = f"歌曲 '{song_name}'"
+        if singer_name:
+            msg += f" - {singer_name}"
+        msg += " 已在播放队列中"
+        if playback_info["current_display_name"]:
+            msg += f"，当前正在播放: {playback_info['current_display_name']}"
+        logger.info(msg)
+        return {
+            "success": True,
+            "result": msg,
+            "queued": True,
+            "queue_position": playback_info["queue_length"] + 1,
+            "duration": "",
+            "song_name": song_name,
+            "singer_name": singer_name,
+            "album_name": "",
+            "already_in_queue": True
+        }
+    
+    # 标记歌曲为处理中
+    playback_manager.mark_song_pending(song_name, singer_name)
     
     try:
         # 创建Music实例（只创建一次）
@@ -118,3 +144,6 @@ def search_name_play(song_name: str, singer_name: str = "") -> dict:
             "success": False,
             "result": msg
         }
+    finally:
+        # 无论成功或失败，取消处理中标记（play_music 已调用 add_to_queue 将歌曲加入队列）
+        playback_manager.unmark_song_pending(song_name, singer_name)

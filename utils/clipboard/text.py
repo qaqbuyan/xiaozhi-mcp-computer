@@ -1,4 +1,3 @@
-import re
 import logging
 import pyperclip
 from mcp.server.fastmcp import FastMCP
@@ -15,10 +14,6 @@ def get_clipboard_text(mcp: FastMCP):
         try:
             logger.info("开始获取剪切板文字...")
             content = pyperclip.paste()
-            # 去除换行符
-            content = content.replace('\n', '').replace('\r', '')
-            # 多个连续空格只保留一个
-            content = re.sub(r'\s+', ' ', content)
             if not content.strip():
                 msg = "剪切板没有有效文字"
                 logger.info(msg)

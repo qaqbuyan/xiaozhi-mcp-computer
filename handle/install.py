@@ -26,6 +26,13 @@ def detect_active_environment():
     except:
         pass
     
+    # 检测uv
+    try:
+        subprocess.run(['uv', '--version'], capture_output=True, check=True)
+        env_info.append("uv")
+    except:
+        pass
+    
     return env_info if env_info else ["系统Python"]
 
 def install_requirements(requirements: str):
@@ -56,12 +63,20 @@ def install_requirements(requirements: str):
             except (subprocess.CalledProcessError, FileNotFoundError):
                 logger.warning(f"配置的conda环境无效，回退到默认pip安装")
                 install_command = ['pip', 'install']
+        elif 'uv' in environment.lower():
+            try:
+                subprocess.run(['uv', '--version'], capture_output=True, check=True)
+                install_command = ['uv', 'pip', 'install']
+                logger.info(f"检测到uv环境，使用uv安装依赖包")
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                logger.warning(f"配置的uv环境无效，回退到默认pip安装")
+                install_command = ['pip', 'install']
         elif 'pyenv' in environment.lower():
             # Windows平台提醒
             import platform
             if platform.system() == 'Windows':
                 logger.warning("⚠️  pyenv在Windows上体验较差，建议优先使用Conda环境以获得更好的兼容性")
-                logger.warning("   推荐环境优先级: Conda > venv/virtualenv > pyenv")
+                logger.warning("   推荐环境优先级: Conda > uv > venv/virtualenv > pyenv")
             install_command = ['pip', 'install']
         else:
             logger.warning(f"未知的环境设置: {environment}，使用默认pip安装")
@@ -87,13 +102,13 @@ def install_requirements(requirements: str):
                 logger.info(f"使用conda频道: {source}")
             else:
                 logger.warning(f"conda不支持URL格式的源: {source}，跳过源配置")
-        elif install_command[0] == 'pip':
-            # pip使用-i参数 (适用于pip/venv/virtualenv/pyenv)
+        elif install_command[0] in ('pip', 'uv'):
+            # pip/uv使用-i参数指定索引源
             if source.startswith('http://') or source.startswith('https://'):
                 pip_command.extend(['-i', source])
-                logger.info(f"使用pip源: {source}")
+                logger.info(f"使用{install_command[0]}源: {source}")
             else:
-                logger.warning(f"pip源格式无效: {source}，应为URL格式")
+                logger.warning(f"{install_command[0]}源格式无效: {source}，应为URL格式")
     
     # 添加依赖包（空格分隔）
     requirements_list = requirements.split()
@@ -105,6 +120,8 @@ def install_requirements(requirements: str):
         env_lower = environment.lower()
         if 'conda' in env_lower:
             env_info.append("conda")
+        elif 'uv' in env_lower:
+            env_info.append("uv")
         elif 'pyenv' in env_lower:
             env_info.append("pyenv")
         elif 'venv' in env_lower or 'virtualenv' in env_lower:

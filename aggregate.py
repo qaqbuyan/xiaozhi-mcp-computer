@@ -8,6 +8,34 @@ from handle.version import get_version
 from handle.logger import setup_logging
 from handle.check import check_packages
 
+
+class RequestTypeTranslator(logging.Filter):
+    """将 MCP 底层库的英文日志翻译为中文"""
+    _type_map = {
+        'PingRequest': '心跳包',
+        'ListToolsRequest': '获取工具列表',
+        'CallToolRequest': '调用工具',
+        'ListResourcesRequest': '获取资源列表',
+        'ReadResourceRequest': '读取资源',
+        'ListPromptsRequest': '获取提示列表',
+        'GetPromptRequest': '获取提示',
+        'InitializeRequest': '初始化',
+        'ListResourceTemplatesRequest': '获取资源模板列表',
+        'SetLevelRequest': '设置日志级别',
+        'CompleteRequest': '自动补全',
+    }
+
+    def filter(self, record):
+        msg = record.getMessage()
+        if msg.startswith('Processing request of type '):
+            req_type = msg[len('Processing request of type '):]
+            cn_type = self._type_map.get(req_type, req_type)
+            record.msg = f'处理 {cn_type} 类型的请求'
+            record.args = ()
+            record.name = '管道代理'
+        return True
+
+
 def cleanup_on_exit():
     """程序退出时的清理函数"""
     logger.info("程序正在退出，开始清理资源...")
@@ -38,6 +66,9 @@ if __name__ == "__main__":
     try:
         logger = setup_logging()
         logger = logging.getLogger('管道服务')
+        # 为 MCP 底层库的日志添加中文翻译过滤器
+        mcp_logger = logging.getLogger('mcp.server.lowlevel.server')
+        mcp_logger.addFilter(RequestTypeTranslator())
         logger.info("启动环境检查..")
         check_packages()
         logger.info("环境检查完成")
@@ -59,7 +90,8 @@ if __name__ == "__main__":
         mcp.run(transport="stdio")
     except RuntimeError as e:
         logger.error(f"服务器启动失败: {e}")
-    # 等待服务端初始化完成
+    # 等待服务端初始化完成（仅首次提示）
+    _initialized_printed = False
     try:
         while True:
             try:
@@ -67,7 +99,9 @@ if __name__ == "__main__":
                     break
             except Exception:
                 pass
-            logger.info("等待服务端初始化完成...")
+            if not _initialized_printed:
+                logger.info("等待服务端初始化完成...")
+                _initialized_printed = True
             time.sleep(1)
     except KeyboardInterrupt:
         logger.info("收到中断信号，开始退出...")

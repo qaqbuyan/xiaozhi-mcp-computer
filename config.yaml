@@ -1,126 +1,218 @@
-# 程序版本
-version: 0.2.5.5-beta
+# =============================================================================
+# 小智MCP电脑控制 - 全局配置文件
+# =============================================================================
+# 修改配置后需要重启程序才能生效（会自动检测文件变更并重新加载）
 
-# MCP管道连接配置
+# ---------------------------------------------------------------------------
+# 程序版本（由开发者维护，请勿手动修改）
+# ---------------------------------------------------------------------------
+version: 0.2.5.6-rc
+
+# ---------------------------------------------------------------------------
+# WebSocket 连接重连配置
+# 当与服务器的连接断开后，程序会按指数退避策略自动重连
+# ---------------------------------------------------------------------------
 reconnection:
-  # 初始重连等待时间(秒)
+  # 初始重连等待时间（秒），第一次重连会等待这么久
   initial_backoff: 1
-  # 最大重连等待时间(秒)
+  # 最大重连等待时间（秒），重连等待时间不会超过这个值
   max_backoff: 600
-  # 当前重连尝试次数(初始为0)
+  # 当前重连尝试次数（初始为 0，程序运行时自动更新）
   reconnect_attempt: 0
-  # 当前退避时间(初始为1秒)
+  # 当前退避时间（初始为 initial_backoff 的值，程序运行时自动更新）
   backoff: 1
 
-# 模块配置
+# ---------------------------------------------------------------------------
+# 依赖安装配置
+# 程序启动时会自动检查并安装缺失的 Python 依赖库
+# ---------------------------------------------------------------------------
 module:
-  # 安装 系统级 模块
+  # 是否安装系统级依赖（True=安装，False=跳过）
   system: True
-  # 下载 源
-  source: "" # 对于conda可以是频道名，对于pip必须是URL
-  # 环境变量
-  environment: "" # 可以是"conda"、"anaconda"或留空使用默认pip
+  # 依赖下载源。conda 环境填频道名，pip 环境填镜像 URL
+  # 例如：https://mirrors.aliyun.com/pypi/simple/
+  source: ""
+  # Python 环境管理器，可选值：
+  #   "conda"    - 使用 Anaconda/Miniconda 环境
+  #   "anaconda" - 使用 Anaconda 环境
+  #   "uv"       - 使用 uv（快速 Python 包管理器）
+  #   留空       - 使用系统默认 pip
+  environment: ""
 
-# 工具配置
+# ---------------------------------------------------------------------------
+# 工具功能开关
+# 设置为 True 表示启用该功能，False 表示禁用
+# 禁用后 AI 将无法调用对应的工具
+# ---------------------------------------------------------------------------
 utils:
-  # 程序工具
+  # ---- 程序/窗口管理 ----
   application:
+    # 关闭指定应用程序
     close: True
+    # 激活（切换到前台）指定应用程序窗口
     set_active: True
-  # 自动化工具
+
+  # ---- 自动化操作 ----
   automation:
     document:
+      # 自动生成 Excel 文件（按数据自动创建 .xlsx）
       xlsx: False
+      # 自动生成 Word 文件（按数据自动创建 .docx）
       word: False
-  # 文件工具
+
+  # ---- 文件操作 ----
   file:
+    # 临时写入记事本（将内容写入临时记事本文件）
     notepad: True
+    # 复制文件或文件夹
     copy_file_or_folder: True
+    # 新建文件或文件夹
     create_folder_or_file: True
+    # 删除文件或文件夹
     delete_folder_or_file: True
+    # 修改文件内容（覆盖写入已有文件）
     modify_file_content: True
+    # 移动文件或文件夹
     move_file_or_folder: True
+    # 重命名文件或文件夹
     rename_file_or_folder: True
+    # 剪切文件或文件夹
     cut_file_or_folder: True
+    # 粘贴文件或文件夹
     paste_file_or_folder: True
+    # 获取文件或文件夹的属性信息
     get_file_or_folder_properties: True
+    # 清空回收站
     empty_recycle_bin: True
-  # 键盘工具
+
+  # ---- 键盘模拟 ----
   keyboard:
+    # 组合键输入（如 Ctrl+C、Alt+Tab 等）
     combinatorial_input: True
+    # 按键长按控制（按下/松开单个按键）
     control_keys: True
-  # 鼠标工具
+
+  # ---- 鼠标模拟 ----
   mouse:
+    # 鼠标点击（左键/右键/中键/前进/后退）
     click: True
+    # 鼠标水平移动
     horizontal: True
+    # 鼠标滚轮上下滚动
     scroll: True
+    # 鼠标长按（按住不放）
     long_press: True
+    # 获取当前鼠标位置坐标
     position: True
+    # 移动鼠标到指定区域中心
     region: True
+    # 通过文字识别移动鼠标到屏幕上的文字位置
     identify_move_page_position: True
+    # 在鼠标位置输入文本（支持逐字打字效果和直接粘贴两种模式）
     input_content_by_mouse_position: True
-  # 打开工具
+
+  # ---- 打开操作 ----
   open:
+    # 打开桌面
     desktop: True
+    # 打开文件夹路径
     directory: True
+    # 在浏览器中打开网址
     website: True
+    # 打开程序/可执行文件
     program: True
+    # 使用默认程序打开文件
     file: True
-  # 扫描工具
+
+  # ---- 扫描操作 ----
   scan:
+    # 扫描指定目录下的文件列表
     directory: True
+    # 扫描指定文件的详细信息
     file: True
-  # 扬声器工具
+
+  # ---- 扬声器/音量控制 ----
   speaker:
+    # 获取系统总音量
     get_volume: True
+    # 设置系统总音量
     set_volume: True
+    # 切换静音状态
     toggle_mute: True
+    # 获取所有正在播放音频的程序列表
     get_audio_sessions: True
+    # 获取当前是否静音
     get_mute: True
+    # 设置指定程序的音量
     set_app_volume: True
-  # 浏览器工具
+
+  # ---- 浏览器 ----
   browser:
+    # 获取浏览器书签
     bookmarks: True
-  # 图像识别工具
+
+  # ---- 图像识别 ----
   image:
-    # 超时设置(秒)
+    # OCR 超时时间（秒），识别图片中的文字超时等待时间
     timeout: 15
-    # 文本位置
+    # 文字位置识别
     text:
-      # 这个功能主要是鼠标精准移动到某个位置上,README.md中介绍了如何使用以及配置
+      # 通过 OCR 识别文字坐标，让鼠标精准移动到文字位置
       position: True
+      # OCR 服务地址，留空使用默认的公益接口
+      # 如需自建 OCR 服务，填写完整的 API URL
       ocr: ""
-    # 图片描述
+    # 图片描述（让 AI 描述图片内容）
     description: True
-  # 截图工具
+
+  # ---- 截图 ----
   screenshot:
+    # 截取当前屏幕
     take: True
-  # 剪贴板工具
+
+  # ---- 剪贴板 ----
   clipboard:
+    # 获取剪贴板中的文字内容
     get_text: True
-    get_image: False
-  # 单独工具
+    # 获取剪贴板中的图片
+    get_image: True
+
+  # ---- 独立工具 ----
   alone:
+    # 获取系统状态信息（CPU、内存、磁盘等）
     system_status: True
+    # 从 URL 下载文件到本地
     download_file: True
+    # 在终端中执行命令（仅 Windows）
     run_command: True
-  # 音乐工具
+
+  # ---- 音乐播放 ----
   music:
     module:
-      request_song: True
-      play_song_list: True
+      # 点歌：按歌曲名/歌手名搜索并播放
+      request_song: False
+      # 播放歌单：按腾讯歌单 ID 播放整张歌单
+      play_song_list: False
+      # 新歌速递：播放最新发布的歌曲
       play_new_song: False
-    # 自定义请求头
+    # 请求音乐 API 时使用的 User-Agent
     headers:
       User-Agent: "ESP32-Music-Player/1.0"
-    # 音乐音质
+    # 音乐音质，可选值：128（普通）, 320（高品质）, flac（无损）
     song_type: "128"
-    # 音乐API地址
-    music_api: ""
-    # 批量播放暂停长间隔时间跳过（false）或播放（true）
+    # 音乐 API 地址（需要自建或使用第三方 QQ 音乐 API）
+    # 参考：https://github.com/qaqbuyan/qq-music-api
+    music_api: "https://qaqbuyan.com:88/api/qq%E9%9F%B3%E4%B9%90/"
+    # 批量播放时的暂停行为：
+    #   True  - 暂停时间过长时自动跳过继续播下一首
+    #   False - 暂停时间过长时停止整个批量播放
     pause_interval: True
 
-# WebSocket端点配置
+# ---------------------------------------------------------------------------
+# MCP 服务器 WebSocket 连接端点
+# 程序通过此地址与 AI 云端服务建立双向通信
+# ---------------------------------------------------------------------------
 endpoint:
-  # MCP服务器WebSocket端点(必须以wss://或ws://开头)
-  url: ""
+  # WebSocket 服务器地址，必须以 wss:// 或 ws:// 开头
+  # 注意：此 URL 包含身份验证 token，请勿泄露给他人
+  url: "wss://api.xiaozhi.me/mcp/?token=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjM1NjA3NiwiYWdlbnRJZCI6MzkxOTQwLCJlbmRwb2ludElkIjoiYWdlbnRfMzkxOTQwIiwicHVycG9zZSI6Im1jcC1lbmRwb2ludCIsImlhdCI6MTc0OTYzMjE1N30.eI5309WfPQiO9eGdAzZje_DEUqvnPtXj5KzdU6v3in5F3yWlxYvxcCgAF21TAxa8nnqU62RN9WmOBq74haRZYw"

@@ -1,8 +1,47 @@
 import logging
+import ssl
 import requests
+from requests.exceptions import SSLError, ConnectionError, Timeout
 from handle.loader import load_config
+from handle.identifier import get_device_headers
 
 logger = logging.getLogger('版本检查')
+
+
+def _get_friendly_error_message(error: Exception) -> str:
+    """将网络请求异常转换为用户友好的提示信息"""
+    if isinstance(error, SSLError):
+        cert_error = getattr(error, 'reason', None) or str(error)
+        # 检查是否为证书过期
+        if 'certificate has expired' in str(cert_error):
+            return (
+                "无法获取版本信息：版本服务器的 SSL 证书已过期。"
+                "请检查系统时间是否正确，或联系开发者更新证书。"
+            )
+        elif 'certificate verify failed' in str(cert_error):
+            return (
+                "无法获取版本信息：版本服务器的 SSL 证书验证失败。"
+                "可能是证书过期或被篡改，请检查网络环境或联系开发者。"
+            )
+        return (
+            "无法获取版本信息：连接版本服务器时出现 SSL 错误。"
+            "请检查网络环境或联系开发者。"
+        )
+    if isinstance(error, ConnectionError):
+        return (
+            "无法获取版本信息：无法连接到版本服务器。"
+            "请检查网络连接是否正常，或稍后重试。"
+        )
+    if isinstance(error, Timeout):
+        return (
+            "无法获取版本信息：连接版本服务器超时。"
+            "请检查网络连接是否正常，或稍后重试。"
+        )
+    # 兜底：其他未知请求异常
+    return (
+        "无法获取版本信息：请求版本服务器时出现异常，请稍后重试。"
+        "如果问题持续存在，请联系开发者。"
+    )
 
 def get_version(all_version: bool = False) -> dict:
     logger.info("进行获取版本更新...")
@@ -14,6 +53,7 @@ def get_version(all_version: bool = False) -> dict:
     if user_agent:
         headers['User-Agent'] = user_agent
     headers['x-requested-with'] = 'XMLHttpRequest'
+    headers.update(get_device_headers())
     try:
         response = requests.get(url, headers=headers, timeout=5)
         # 检查状态码
@@ -125,6 +165,9 @@ def get_version(all_version: bool = False) -> dict:
     except requests.RequestException as e:
         error_msg = f"请求出错: {e}"
         logger.error(error_msg)
+        # 返回用户友好的提示信息，而非原始异常堆栈
+        friendly_msg = _get_friendly_error_message(e)
         return {
-            "error": error_msg
+            "error": friendly_msg,
+            "error_detail": f"请求出错: {e}"  # 仅在内部日志记录原始错误
         }

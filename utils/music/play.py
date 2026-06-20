@@ -147,6 +147,10 @@ class MusicPlaybackManager:
         self.stop_requested = False
         self.current_song_list_id = None
         self.active_processes = []  # 记录所有活动的播放器进程
+        # 待处理歌曲集合（正在搜索/下载中，尚未进入播放队列）
+        # 用于防止 AI 超时重试导致重复添加
+        self._pending_songs = set()  # 存储 (song_name, singer_name) 元组
+        self._pending_lock = threading.Lock()
         
         # 初始化时清理所有临时音乐文件
         try:
@@ -545,6 +549,81 @@ class MusicPlaybackManager:
                 "current_song_list_id": self.current_song_list_id
             }
     
+    def mark_song_pending(self, song_name, singer_name=""):
+        """标记歌曲为正在处理中（搜索/下载中，尚未进入播放队列）
+
+        Args:
+            song_name (str): 歌曲名称
+            singer_name (str): 歌手名称
+        """
+        with self._pending_lock:
+            key = (song_name, singer_name or "")
+            self._pending_songs.add(key)
+            logger.info(f"标记歌曲为处理中: {song_name} - {singer_name}")
+
+    def unmark_song_pending(self, song_name, singer_name=""):
+        """取消标记歌曲处理状态
+
+        Args:
+            song_name (str): 歌曲名称
+            singer_name (str): 歌手名称
+        """
+        with self._pending_lock:
+            key = (song_name, singer_name or "")
+            self._pending_songs.discard(key)
+
+    def is_song_pending(self, song_name, singer_name=""):
+        """检查歌曲是否正在被处理（搜索/下载中）
+
+        Args:
+            song_name (str): 歌曲名称
+            singer_name (str): 歌手名称
+
+        Returns:
+            bool: 是否正在处理中
+        """
+        with self._pending_lock:
+            key = (song_name, singer_name or "")
+            return key in self._pending_songs
+
+    def is_song_in_queue(self, song_name, singer_name=""):
+        """检查歌曲是否已在播放队列中或正在播放
+
+        Args:
+            song_name (str): 歌曲名称
+            singer_name (str): 歌手名称
+
+        Returns:
+            bool: 是否已在队列或正在播放
+        """
+        with self.queue_lock:
+            # 检查当前正在播放的歌曲
+            if self.current_song_name == song_name:
+                if not singer_name or self.current_singer_name == singer_name:
+                    return True
+            # 检查队列中等待播放的歌曲
+            for song in self.play_queue:
+                if song.get("song_name") == song_name:
+                    if not singer_name or song.get("singer_name") == singer_name:
+                        return True
+        return False
+
+    def is_song_in_queue_or_pending(self, song_name, singer_name=""):
+        """检查歌曲是否已在队列、正在播放或正在处理中
+
+        Args:
+            song_name (str): 歌曲名称
+            singer_name (str): 歌手名称
+
+        Returns:
+            bool: 是否已存在（任何状态）
+        """
+        if self.is_song_in_queue(song_name, singer_name):
+            return True
+        if self.is_song_pending(song_name, singer_name):
+            return True
+        return False
+
     def clear_queue_and_play_song_list(self, song_list_data, song_list_id=None):
         """清理当前队列并播放新的歌单
         

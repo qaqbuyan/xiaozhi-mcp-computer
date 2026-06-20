@@ -1,6 +1,7 @@
 import sys
 import time
 import json
+import ssl
 import random
 import signal
 import atexit
@@ -20,6 +21,84 @@ INITIAL_BACKOFF = config['reconnection']['initial_backoff']
 MAX_BACKOFF = config['reconnection']['max_backoff']
 reconnect_attempt = config['reconnection']['reconnect_attempt']
 backoff = config['reconnection']['backoff']
+
+# 标记是否已输出过 SSL 错误引导信息
+_ssl_error_guided = False
+
+def _is_ssl_error(error: Exception) -> bool:
+    """判断异常是否为 SSL 证书错误"""
+    error_str = str(error).lower()
+    ssl_keywords = [
+        'certificate verify failed',
+        'self-signed certificate',
+        'certificate has expired',
+        'ssl',
+        'sslv3',
+        'tls',
+    ]
+    return any(kw in error_str for kw in ssl_keywords)
+
+
+def _is_self_signed_cert_error(error: Exception) -> bool:
+    """判断是否为自签名证书链错误（self-signed certificate in certificate chain）
+    此类错误由客户端网络环境的 SSL 中间人审查导致，重试也无法恢复。
+    """
+    return 'self-signed certificate in certificate chain' in str(error).lower()
+
+
+def _is_dns_error(error: Exception) -> bool:
+    """判断是否为 DNS 解析失败错误（getaddrinfo failed / Name or service not known）
+    此类错误由网络断开、DNS 异常或域名不存在导致，重试也无法恢复。
+    """
+    error_str = str(error).lower()
+    return ('getaddrinfo failed' in error_str
+            or 'name or service not known' in error_str
+            or 'temporary failure in name resolution' in error_str)
+
+
+_dns_error_guided = False
+
+
+def _log_dns_guidance():
+    """输出 DNS 解析错误的用户引导信息（仅首次输出）"""
+    global _dns_error_guided
+    if _dns_error_guided:
+        return
+    _dns_error_guided = True
+    guidance = (
+        "╔══════════════════════════════════════════════════════════════╗\n"
+        "║  DNS 解析失败，无法找到服务器地址                             ║\n"
+        "╠══════════════════════════════════════════════════════════════╣\n"
+        "║  这是客户端网络环境问题，常见原因及解决方法：                 ║\n"
+        "║  1. 网络未连接 → 请检查网络是否正常                          ║\n"
+        "║  2. DNS 服务器异常 → 尝试将 DNS 改为 114.114.114.114         ║\n"
+        "║     或 8.8.8.8 后重试                                         ║\n"
+        "║  3. 域名解析被拦截 → 检查代理/VPN 配置或切换手机热点测试     ║\n"
+        "╚══════════════════════════════════════════════════════════════╝"
+    )
+    logger.warning(f"\n{guidance}")
+
+
+def _log_ssl_guidance():
+    """输出 SSL 证书错误的用户引导信息（仅首次输出）"""
+    global _ssl_error_guided
+    if _ssl_error_guided:
+        return
+    _ssl_error_guided = True
+    guidance = (
+        "╔══════════════════════════════════════════════════════════════╗\n"
+        "║  SSL 证书验证失败，无法安全连接到服务器                      ║\n"
+        "╠══════════════════════════════════════════════════════════════╣\n"
+        "║  这是客户端网络环境问题，常见原因及解决方法：                 ║\n"
+        "║  1. 系统时间不正确 → 请校准系统时间后再试                    ║\n"
+        "║  2. 公司/学校网络开启了 SSL 审查（代理拦截）                  ║\n"
+        "║     → 请关闭代理/VPN，或切换到手机热点网络测试               ║\n"
+        "║  3. 杀毒软件（如 360、卡巴斯基）启用了 HTTPS 扫描            ║\n"
+        "║     → 请在杀毒软件中关闭 HTTPS/SSL 扫描功能                  ║\n"
+        "╚══════════════════════════════════════════════════════════════╝"
+    )
+    logger.warning(f"\n{guidance}")
+
 
 def cleanup_all_processes():
     """清理所有相关进程的全局函数"""
@@ -60,18 +139,76 @@ async def connect_with_retry(uri):
                 await asyncio.sleep(wait_time)
             # 尝试连接
             await connect_to_server(uri)
+        except ssl.SSLError as e:
+            reconnect_attempt += 1
+            logger.warning(f"连接关闭(尝试次数: {reconnect_attempt}): {e}")
+            if _is_self_signed_cert_error(e):
+                _log_ssl_guidance()
+                logger.error("自签名证书链错误无法通过重试解决，停止连接")
+                return 1
+            _log_ssl_guidance()
+            # 其他 SSL 错误（如证书过期）继续重试，万一用户手动修复了问题
+            backoff = min(backoff * 2, MAX_BACKOFF)
+        except websockets.exceptions.WebSocketException as e:
+            reconnect_attempt += 1
+            error_str = str(e)
+            if _is_self_signed_cert_error(e):
+                _log_ssl_guidance()
+                logger.error("自签名证书链错误无法通过重试解决，停止连接")
+                return 1
+            if _is_dns_error(e):
+                _log_dns_guidance()
+                logger.error("DNS 解析失败无法通过重试解决，停止连接")
+                return 1
+            if _is_ssl_error(e):
+                _log_ssl_guidance()
+            logger.warning(f"连接关闭(尝试次数: {reconnect_attempt}): {error_str}")
+            # 超时类错误不增加退避时间，直接快速重试
+            if 'timed out' in error_str:
+                backoff = INITIAL_BACKOFF
+            else:
+                backoff = min(backoff * 2, MAX_BACKOFF)
         except Exception as e:
             reconnect_attempt += 1
-            logger.warning(f"连接关闭(尝试次数: {reconnect_attempt}): {e}")            
-            # 计算下次重连等待时间(指数退避)
-            backoff = min(backoff * 2, MAX_BACKOFF)
+            error_str = str(e)
+            if _is_self_signed_cert_error(e):
+                _log_ssl_guidance()
+                logger.error("自签名证书链错误无法通过重试解决，停止连接")
+                return 1
+            if _is_dns_error(e):
+                _log_dns_guidance()
+                logger.error("DNS 解析失败无法通过重试解决，停止连接")
+                return 1
+            if _is_ssl_error(e):
+                _log_ssl_guidance()
+            logger.warning(f"连接关闭(尝试次数: {reconnect_attempt}): {error_str}")
+            # 超时类错误不增加退避时间，直接快速重试
+            if 'timed out' in error_str:
+                backoff = INITIAL_BACKOFF
+            else:
+                backoff = min(backoff * 2, MAX_BACKOFF)
 
 async def connect_to_server(uri, on_process_end=None):
     """连接到WebSocket服务器并与`mcp_script`建立双向通信"""
     global reconnect_attempt, backoff
     try:
         logger.info(f"正在连接WebSocket服务器...")
-        async with websockets.connect(uri) as websocket:
+        try:
+            websocket = await websockets.connect(uri, open_timeout=5)
+        except ssl.SSLCertVerificationError as e:
+            _log_ssl_guidance()
+            raise
+        except websockets.exceptions.WebSocketException as e:
+            if _is_dns_error(e):
+                _log_dns_guidance()
+            if _is_ssl_error(e):
+                _log_ssl_guidance()
+            raise
+        except OSError as e:
+            if _is_dns_error(e):
+                _log_dns_guidance()
+            raise
+        async with websocket:
             logger.info(f"成功连接到WebSocket服务器")
             # 如果连接正常关闭，重置重连计数器
             reconnect_attempt = 0
