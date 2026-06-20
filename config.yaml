@@ -202,7 +202,7 @@ utils:
     song_type: "128"
     # 音乐 API 地址（需要自建或使用第三方 QQ 音乐 API）
     # 参考：https://github.com/qaqbuyan/qq-music-api
-    music_api: "https://qaqbuyan.com:88/api/qq%E9%9F%B3%E4%B9%90/"
+    music_api: ""
     # 批量播放时的暂停行为：
     #   True  - 暂停时间过长时自动跳过继续播下一首
     #   False - 暂停时间过长时停止整个批量播放
@@ -215,4 +215,4 @@ utils:
 endpoint:
   # WebSocket 服务器地址，必须以 wss:// 或 ws:// 开头
   # 注意：此 URL 包含身份验证 token，请勿泄露给他人
-  url: "wss://api.xiaozhi.me/mcp/?token=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjM1NjA3NiwiYWdlbnRJZCI6MzkxOTQwLCJlbmRwb2ludElkIjoiYWdlbnRfMzkxOTQwIiwicHVycG9zZSI6Im1jcC1lbmRwb2ludCIsImlhdCI6MTc0OTYzMjE1N30.eI5309WfPQiO9eGdAzZje_DEUqvnPtXj5KzdU6v3in5F3yWlxYvxcCgAF21TAxa8nnqU62RN9WmOBq74haRZYw"
+  url: ""
