@@ -6,9 +6,9 @@ from utils.mouse.region import move_mouse_region
 from utils.mouse.long_press import mouse_long_press
 from utils.mouse.position import get_mouse_position
 from utils.mouse.up_down_roll import mouse_up_and_down_move
+from utils.mouse.text import input_content_by_mouse_position
 from utils.mouse.horizontal_roll import mouse_horizontal_move
 from utils.mouse.identify_move import identify_move_page_position
-from utils.mouse.text import input_content_by_mouse_position
 
 def register_mouse(mcp: FastMCP):
     """集中注册所有鼠标工具"""

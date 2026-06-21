@@ -3,7 +3,7 @@ import logging
 import platform
 import subprocess
 from mcp.server.fastmcp import FastMCP
-from utils.missing_params import ask_on_missing
+from handle.missing_params import ask_on_missing
 
 logger = logging.getLogger('打开程序')
 

@@ -2,7 +2,9 @@ import logging
 from handle.loader import load_config
 from mcp.server.fastmcp import FastMCP
 from utils.application.close import close_application
+from utils.application.close_top import close_top_window
 from utils.application.set_active import set_window_active_tool
+from utils.application.list_desktop import list_desktop_windows
 
 def register_application(mcp: FastMCP):
     """注册所有程序工具"""
@@ -27,5 +29,9 @@ def register_application(mcp: FastMCP):
     
     if application_config.get('set_active', False):
         set_window_active_tool(mcp)
+    
+    if application_config.get('close_window', False):
+        close_top_window(mcp)
+        list_desktop_windows(mcp)
     
     logger.info("注册完成")

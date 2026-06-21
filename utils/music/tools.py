@@ -1,9 +1,9 @@
 import logging
+from handle.loader import load_config
 from mcp.server.fastmcp import FastMCP
 from utils.music.play_song import computer_play_song
-from utils.music.play_song_list import computer_play_song_list
 from utils.music.play_new_song import computer_play_new_song
-from handle.loader import load_config
+from utils.music.play_song_list import computer_play_song_list
 
 def register_music(mcp: FastMCP):
     """集中注册所有音乐工具"""

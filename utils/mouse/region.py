@@ -1,7 +1,7 @@
 import logging
 from mcp.server.fastmcp import FastMCP
 from utils.mouse.move_area import move_area
-from utils.missing_params import ask_on_missing
+from handle.missing_params import ask_on_missing
 
 logger = logging.getLogger('鼠标区域移动')
 

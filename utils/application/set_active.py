@@ -1,10 +1,10 @@
+import logging
 import win32gui
 import win32con
-import logging
 from mcp.server.fastmcp import FastMCP
+from handle.missing_params import ask_on_missing
 from utils.application.find_title import find_window_by_title
 from utils.application.check_activity import get_window_active
-from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('设置窗口状态')
 

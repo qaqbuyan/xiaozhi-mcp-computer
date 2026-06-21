@@ -1,11 +1,11 @@
 import time
-import threading
 import logging
-import platform
+import threading
 import pyautogui
 import pyperclip
 from mcp.server.fastmcp import FastMCP
-from utils.missing_params import ask_on_missing
+from handle.missing_params import ask_on_missing
+from handle.get_paste_keys import get_paste_keys
 
 logger = logging.getLogger('输入文本')
 
@@ -18,15 +18,6 @@ CHAR_INPUT_TIME_MS = 30
 # 防重复输入：记录当前正在输入的文本
 _pending_text = None
 _pending_text_lock = threading.Lock()
-
-
-def _get_paste_keys():
-    """根据操作系统返回粘贴快捷键"""
-    if platform.system() in ["Windows", "Linux"]:
-        return ['ctrl', 'v']
-    elif platform.system() == "Darwin":  # macOS
-        return ['command', 'v']
-    return ['ctrl', 'v']
 
 
 def input_content_by_mouse_position(mcp: FastMCP):
@@ -49,7 +40,8 @@ def input_content_by_mouse_position(mcp: FastMCP):
         Returns:
             str: 输入完成后的文本
         """
-        logger.info(f"开始输入文本 {text} ...")
+        global _pending_text
+        logger.info(f"开始输入文本: {text} ...")
 
         # 防重复检测（非强制模式）
         if not force:
@@ -62,16 +54,18 @@ def input_content_by_mouse_position(mcp: FastMCP):
                     logger.info(msg)
                     return msg
 
-        # 记录当前正在输入的文本
-        with _pending_text_lock:
-            _pending_text = text
-
-        # 记录当前剪贴板内容，结束后恢复
-        original_clipboard = pyperclip.paste()
-        x, y = pyautogui.position()
-        text_len = len(text)
-        paste_keys = _get_paste_keys()
+        original_clipboard = None
         try:
+            # 记录当前正在输入的文本（放在 try 块内，确保 finally 中清除）
+            with _pending_text_lock:
+                _pending_text = text
+
+            # 记录当前剪贴板内容，结束后恢复
+            original_clipboard = pyperclip.paste()
+            x, y = pyautogui.position()
+            text_len = len(text)
+            paste_keys = get_paste_keys()
+
             # 预估逐字输入总耗时（包含固定函数开销 ~30ms）
             estimated_time_ms = text_len * CHAR_INPUT_TIME_MS + 30
             logger.info(
@@ -100,8 +94,12 @@ def input_content_by_mouse_position(mcp: FastMCP):
             logger.error(msg)
             return msg
         finally:
-            # 恢复原始剪贴板内容
-            pyperclip.copy(original_clipboard)
-            # 清除待输入标记
+            # 恢复原始剪贴板内容（仅当成功备份过时才恢复）
+            if original_clipboard is not None:
+                try:
+                    pyperclip.copy(original_clipboard)
+                except Exception as e:
+                    logger.warning(f"恢复剪贴板失败: {e}")
+            # 清除待输入标记（必须执行，防止防重复锁永久卡死）
             with _pending_text_lock:
                 _pending_text = None

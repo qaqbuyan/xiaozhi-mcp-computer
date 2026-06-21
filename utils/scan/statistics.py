@@ -2,7 +2,7 @@ import logging
 from utils.scan.menu import scan_menu
 from mcp.server.fastmcp import FastMCP
 from utils.scan.desktop import scan_desktop
-from utils.missing_params import ask_on_missing
+from handle.missing_params import ask_on_missing
 
 logger = logging.getLogger('扫描统计')
 

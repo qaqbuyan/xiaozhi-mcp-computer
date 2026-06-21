@@ -1,12 +1,10 @@
 import logging
-import ssl
 import requests
-from requests.exceptions import SSLError, ConnectionError, Timeout
 from handle.loader import load_config
 from handle.identifier import get_device_headers
+from requests.exceptions import SSLError, ConnectionError, Timeout
 
 logger = logging.getLogger('版本检查')
-
 
 def _get_friendly_error_message(error: Exception) -> str:
     """将网络请求异常转换为用户友好的提示信息"""
@@ -60,8 +58,28 @@ def get_version(all_version: bool = False) -> dict:
         if response.status_code == 200:
             response.raise_for_status()
             json_data = response.json()
+            # 检查服务器返回的状态码
+            api_code = json_data.get('code')
+            if api_code is not None and api_code < 0:
+                # API 返回了错误码（如 code=-4, message="没有这个版本"）
+                api_msg = json_data.get('message', '未知错误')
+                error_msg = f"版本服务器返回错误: {api_msg}(code={api_code})"
+                logger.error(error_msg)
+                return {
+                    "error": error_msg,
+                    "current_version": config.get('version', 'unknown'),
+                    "latest_version": None
+                }
             # 检查版本是否一致
             messages = json_data.get('message', [])
+            if not isinstance(messages, list):
+                error_msg = f"版本服务器返回的 message 格式异常: {messages}"
+                logger.error(error_msg)
+                return {
+                    "error": error_msg,
+                    "current_version": config.get('version', 'unknown'),
+                    "latest_version": None
+                }
             if all_version:
                 all_updates = []
                 for message in messages:
@@ -127,11 +145,8 @@ def get_version(all_version: bool = False) -> dict:
                             latest_size = message.get('size', '')
                             latest_hash = message.get('hash', '')
                     else:
-                        error_msg = f"消息项不是字典类型: {message}"
-                        logger.error(error_msg)
-                        return {
-                            "error": error_msg
-                        }
+                        logger.warning(f"版本数据中遇到非字典项: {type(message).__name__} = {message}")
+                        continue
                 if latest_version and (latest_version != current_version):
                     logger.info(f"当前版本: {current_version}")
                     msg = f"发现新版本: {latest_version}"

@@ -1,8 +1,8 @@
 import logging
 from mcp.server.fastmcp import FastMCP
 from utils.clipboard.get_image import get_image
+from handle.missing_params import ask_on_missing
 from utils.image.identify_description import identify_description
-from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('图像描述')
 

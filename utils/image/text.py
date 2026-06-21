@@ -1,7 +1,7 @@
 import logging
 from mcp.server.fastmcp import FastMCP
+from handle.missing_params import ask_on_missing
 from utils.image.identify_text_position import identify_image_text_coordinates
-from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('图像文字')
 

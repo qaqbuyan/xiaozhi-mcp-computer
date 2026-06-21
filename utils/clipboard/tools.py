@@ -1,8 +1,8 @@
 import logging
+from handle.loader import load_config
 from mcp.server.fastmcp import FastMCP
 from utils.clipboard.text import get_clipboard_text
 from utils.clipboard.image import get_clipboard_image
-from handle.loader import load_config
 
 def register_clipboard(mcp: FastMCP):
     """集中注册剪切板所有工具"""

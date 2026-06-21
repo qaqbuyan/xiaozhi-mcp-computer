@@ -3,7 +3,6 @@ import yaml
 import platform
 from handle.path import get_config_path
 
-
 def _read_config():
     """实际读取配置文件并注入派生字段"""
     config_path = get_config_path()

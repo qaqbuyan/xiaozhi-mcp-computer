@@ -3,8 +3,8 @@ import logging
 from utils.music.music import Music
 from mcp.server.fastmcp import FastMCP
 from utils.music.play import playback_manager
+from handle.missing_params import ask_on_missing
 from utils.music.batch_play import batch_play_song_list_with_queue
-from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('播放歌单')
 

@@ -1,7 +1,7 @@
 import logging
 from mcp.server.fastmcp import FastMCP
+from handle.missing_params import ask_on_missing
 from utils.music.search_name import search_name_play
-from utils.missing_params import ask_on_missing
 
 logger = logging.getLogger('播放歌曲')
 

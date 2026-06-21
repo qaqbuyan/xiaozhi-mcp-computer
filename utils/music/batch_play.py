@@ -1,7 +1,7 @@
 import logging
 import multiprocessing
-from utils.music.play import playback_manager, GlobalProcessManager
 from utils.music.play_worker import _batch_play_worker
+from utils.music.play import playback_manager, GlobalProcessManager
 
 logger = logging.getLogger('批量播放')
 
