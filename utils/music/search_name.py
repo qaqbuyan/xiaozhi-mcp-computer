@@ -16,7 +16,7 @@ def search_name_play(song_name: str, singer_name: str = "", force: bool = False)
     Returns:
         dict: 包含播放状态的字典
     """
-    logger.info(f"搜索并播放音乐: {song_name} - {singer_name}，force={force}")
+    logger.info(f"搜索并播放音乐: {song_name} - {singer_name}")
     
     # 参数验证
     if not song_name:

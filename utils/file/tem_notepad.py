@@ -32,13 +32,9 @@ def temporary_write_to_notepad(mcp: FastMCP):
                         # 仅在成功打开时返回
                 }
         """
-        logger.info(f"收到请求，准备写入内容到记事本: {content}")
+        logger.info(f"收到请求，准备写入内容到记事本：{content}")
         import uuid
-        temp_dir = os.path.join(
-            os.environ.get('TEMP', r'C:\Users\Administrator\AppData\Local\Temp'),
-            'xiaozhi-computer-windows.tmp',
-            'tmp'
-        )
+        temp_dir = os.path.join(os.getcwd(), "tmp")
         os.makedirs(temp_dir, exist_ok=True)
         file_name = f"{uuid.uuid4().hex[:8]}.txt"
         file_path = os.path.join(temp_dir, file_name)
@@ -47,7 +43,7 @@ def temporary_write_to_notepad(mcp: FastMCP):
                 file.write(content)
             logger.info(f"成功写入内容到文件：{file_path}")
         except Exception as e:
-            msg = f"写入文件时出错: {e}"
+            msg = f"写入文件时出错：{e}"
             logger.error(msg)
             return {"success": False, "result": msg}
         try:
@@ -56,7 +52,7 @@ def temporary_write_to_notepad(mcp: FastMCP):
                 subprocess.Popen(['notepad.exe', file_path])
                 file_name = os.path.basename(file_path)
                 window_title = f"{file_name} - 记事本"
-                msg = f"已创建文件并启动记事本: {file_path}，窗口标题：{window_title}"
+                msg = f"已创建文件并启动记事本：{file_path}，窗口标题: {window_title}"
                 logger.info(msg)
                 result = {"success": True, "result": msg, "window_title": window_title}
                 if not get_window_active(file_name):
@@ -64,7 +60,7 @@ def temporary_write_to_notepad(mcp: FastMCP):
                 return result
             elif system == 'Darwin':
                 subprocess.run(['open', '-a', 'TextEdit', file_path], check=True)
-                msg = f"已打开文件:{os.path.basename(file_path)}"
+                msg = f"已打开文件：{os.path.basename(file_path)}"
                 result = {"success": True, "result": msg}
                 file_name = os.path.basename(file_path)
                 if not get_window_active(file_name):
@@ -75,7 +71,7 @@ def temporary_write_to_notepad(mcp: FastMCP):
                 for editor in editors:
                     try:
                         subprocess.Popen([editor, file_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                        msg = f"已打开文件:{os.path.basename(file_path)}"
+                        msg = f"已打开文件：{os.path.basename(file_path)}"
                         result = {"success": True, "result": msg}
                         # 检查编辑器窗口是否为活动窗口
                         file_name = os.path.basename(file_path)
@@ -87,9 +83,9 @@ def temporary_write_to_notepad(mcp: FastMCP):
                 msg = "无法找到合适的文本编辑器"
                 return {"success": False, "result": msg}
             else:
-                msg = f"不支持的操作系统: {system}"
+                msg = f"不支持的操作系统：{system}"
                 return {"success": False, "result": msg}
         except Exception as e:
-            msg = f"打开记事本时出错: {e}"
+            msg = f"打开记事本时出错：{e}"
             logger.error(msg)
             return {"success": False, "result": msg}

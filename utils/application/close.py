@@ -9,7 +9,6 @@ logger = logging.getLogger('关闭程序')
 # 程序自身进程名前缀（禁止关闭）
 _PROTECTED_PROCESS_PREFIX = "小智控制电脑"
 
-
 def close_application(mcp: FastMCP):
     @mcp.tool()
     @ask_on_missing('process_name')

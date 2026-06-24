@@ -95,7 +95,7 @@ def close_top_window(mcp: FastMCP):
                 hwnd, title, rect = matched[0]
                 # 检查是否为程序自身窗口，禁止关闭
                 if title.startswith(_PROTECTED_TITLE_PREFIX):
-                    msg = f"禁止关闭程序自身窗口: {title}"
+                    msg = f"禁止关闭程序自身窗口：{title}"
                     logger.warning(msg)
                     return {
                         "success": False,
@@ -103,7 +103,7 @@ def close_top_window(mcp: FastMCP):
                         "closed_window": "",
                         "z_order_list": z_list,
                     }
-                logger.info(f"匹配到窗口: {title} (句柄: {hwnd})，准备关闭")
+                logger.info(f"匹配到窗口：{title} (句柄: {hwnd})，准备关闭")
             else:
                 # 未指定目标，关闭最顶层窗口
                 if not z_order:

@@ -11,7 +11,6 @@ class SingleLineFormatter(logging.Formatter):
         msg = msg.replace('\r\n', '\\n').replace('\n', '\\n').replace('\r', '\\n')
         return msg
 
-
 class RootLoggerFilter(logging.Filter):
     """将 root 日志器的名称改为"管道服务"，并翻译特定的英文日志消息"""
     _msg_translations = {
@@ -27,7 +26,6 @@ class RootLoggerFilter(logging.Filter):
             record.msg = self._msg_translations[msg]
             record.args = ()
         return True
-
 
 def setup_logging():
     """日志配置"""

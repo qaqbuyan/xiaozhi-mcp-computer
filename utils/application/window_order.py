@@ -50,7 +50,6 @@ def get_visible_windows() -> List[Tuple[int, str, Tuple[int, int, int, int]]]:
         hwnd = win32gui.GetWindow(hwnd, win32con.GW_HWNDNEXT)
     return windows
 
-
 def get_z_order_top_to_bottom() -> List[Tuple[int, str, Tuple[int, int, int, int]]]:
     """获取桌面窗口Z轴层级顺序（从上到下）
 
@@ -96,11 +95,11 @@ def close_window(hwnd: int) -> bool:
     try:
         title = win32gui.GetWindowText(hwnd)
         if title.startswith(_PROTECTED_TITLE_PREFIX):
-            logger.warning(f"禁止关闭程序自身窗口: {title}")
+            logger.warning(f"禁止关闭程序自身窗口：{title}")
             return False
         win32gui.SendMessage(hwnd, win32con.WM_CLOSE, 0, 0)
-        logger.info(f"已向窗口发送关闭消息: {title} (句柄：{hwnd})")
+        logger.info(f"已向窗口发送关闭消息：{title} (句柄：{hwnd})")
         return True
     except Exception as e:
-        logger.error(f"关闭窗口失败: {e}")
+        logger.error(f"关闭窗口失败：{e}")
         return False

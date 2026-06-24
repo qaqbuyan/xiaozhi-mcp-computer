@@ -23,7 +23,6 @@ set_config(config)
 
 signal_handler = make_signal_handler('管道代理')
 
-
 if __name__ == "__main__":
     # 注册信号处理器和atexit处理器
     for sig in [signal.SIGINT, signal.SIGTERM]:

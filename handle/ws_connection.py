@@ -1,3 +1,4 @@
+import os
 import ssl
 import random
 import asyncio
@@ -114,13 +115,28 @@ async def connect_to_server(uri, on_process_end=None):
             logger.info("成功连接到WebSocket服务器")
             reconnect_attempt = 0
             backoff = INITIAL_BACKOFF
+            env = os.environ.copy()
+            from handle.path import get_config_path
+            env['MCP_CONFIG_PATH'] = get_config_path()
+            
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = subprocess.SW_HIDE
+            
+            creationflags = subprocess.CREATE_NEW_PROCESS_GROUP
+            if hasattr(subprocess, 'CREATE_NO_WINDOW'):
+                creationflags |= subprocess.CREATE_NO_WINDOW
+            
             process = subprocess.Popen(
                 ['python', mcp_script],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 encoding=None,
-                text=False
+                text=False,
+                env=env,
+                startupinfo=startupinfo,
+                creationflags=creationflags
             )
             logger.info("已启动注册进程")
             await asyncio.gather(

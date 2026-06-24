@@ -33,5 +33,5 @@ def computer_play_song(mcp: FastMCP):
         """
         logger.info("播放指定的音乐...")
         result = search_name_play(song_name, singer_name, force=force)
-        logger.info(f"播放结果：{result}")
+        logger.info(f"播放结果: {result}")
         return result

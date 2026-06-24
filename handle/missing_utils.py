@@ -33,7 +33,6 @@ def type_to_str(annotation) -> str:
         return f"{origin.__name__}[{', '.join(arg_names)}]"
     return str(annotation)
 
-
 def parse_param_descriptions(func) -> Dict[str, str]:
     """从函数 docstring 的 Args 段解析参数描述"""
     descriptions = {}
@@ -75,13 +74,11 @@ def parse_param_descriptions(func) -> Dict[str, str]:
 
     return descriptions
 
-
 def generate_question(param_name: str, description: str) -> str:
     """根据参数名和描述生成自然语言追问"""
     if description:
         return f"请提供：{description}"
     return f"请提供参数 '{param_name}' 的值"
-
 
 def build_ask_response(tool_name: str, missing_params: List[Dict]) -> Dict:
     """构建结构化的追问响应"""
