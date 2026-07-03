@@ -1,11 +1,13 @@
 import logging
 from mcp.server.fastmcp import FastMCP
 from utils.speaker.speaker import get_speaker
+from handle.missing_params import ask_on_missing
 
 logger = logging.getLogger('设置音量')
 
 def set_volume(mcp: FastMCP):
     @mcp.tool()
+    @ask_on_missing('level')
     def set_volume(level: float = 1.0) -> str:
         """
         设置电脑音量

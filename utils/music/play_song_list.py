@@ -68,17 +68,27 @@ def computer_play_song_list(mcp: FastMCP):
                     total_time = time.time() - start_time
                     logger.info(f"歌单播放请求处理完成，总耗时: {total_time:.2f}秒，即将返回响应")
                     
-                    # 立即返回成功响应，包含第一个播放的歌曲信息
+                    # 立即返回成功响应，包含第一个播放的歌曲信息和队列状态
+                    # 调用结果中已包含 is_playing、queue_length、current_display_name 等字段
                     if first_song_name and first_singer_names:
-                        return {
-                            "success": True,
-                            "result": f"歌单播放任务已启动，包含{len(song_list_data)}首歌曲，请在音乐播放窗口查看播放状态，第一个播放：{first_song_name} - {first_singer_names}"
-                        }
+                        result_msg = f"歌单播放任务已启动，包含{len(song_list_data)}首歌曲，请在音乐播放窗口查看播放状态，第一个播放：{first_song_name} - {first_singer_names}"
                     else:
-                        return {
-                            "success": True,
-                            "result": f"歌单播放任务已启动，包含{len(song_list_data)}首歌曲，音乐将在后台继续播放"
-                        }
+                        result_msg = f"歌单播放任务已启动，包含{len(song_list_data)}首歌曲，音乐将在后台继续播放"
+                    
+                    # 获取当前播放状态用于返回
+                    playback_info = playback_manager.get_current_playback_info()
+                    
+                    return {
+                        "success": True,
+                        "result": result_msg,
+                        "is_playing": playback_info.get("is_playing", False),
+                        "queue_length": playback_info.get("queue_length", 0),
+                        "current_display_name": playback_info.get("current_display_name", ""),
+                        "current_song_name": playback_info.get("current_song_name", ""),
+                        "current_singer_name": playback_info.get("current_singer_name", ""),
+                        "current_song_list_id": playback_info.get("current_song_list_id", None),
+                        "song_count": len(song_list_data)
+                    }
                 else:
                     return {
                         "success": False,

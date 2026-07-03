@@ -1,21 +1,81 @@
 import os
+import sys
 import time
+import psutil
 import logging
+import threading
 from utils.music.music import Music
 from handle.loader import load_config
-from utils.music.play import play_music
+from utils.music.play import play_music, playback_manager
 from utils.file.default_handler import get_default_file_handler
 from utils.speaker.get_audio_sessions import get_all_audio_sessions
 
 logger = logging.getLogger('播放线程')
 
-def _batch_play_worker(mids):
+def _terminate_self_and_children():
+    """终止当前进程的所有子进程，然后退出自身"""
+    try:
+        current_pid = os.getpid()
+        me = psutil.Process(current_pid)
+        for child in me.children(recursive=True):
+            try:
+                child.terminate()
+                child.wait(timeout=3)
+            except (psutil.NoSuchProcess, psutil.TimeoutExpired):
+                pass
+            except psutil.AccessDenied:
+                try:
+                    child.kill()
+                except psutil.NoSuchProcess:
+                    pass
+    except Exception as e:
+        logger.warning(f"终止子进程时出错: {e}")
+    finally:
+        # 强制退出当前后台进程，避免变成孤儿进程继续播放
+        os._exit(1)
+
+def _watch_parent_process(parent_pid, check_interval=3):
+    """监控父进程状态，父进程退出时终止自身及所有子进程
+
+    Args:
+        parent_pid (int): 父进程PID
+        check_interval (int): 检查间隔（秒）
+    """
+    logger.info(f"启动父进程监控，父进程PID: {parent_pid}，检查间隔: {check_interval}秒")
+    while True:
+        try:
+            if not psutil.pid_exists(parent_pid):
+                logger.warning(f"父进程 {parent_pid} 已不存在，准备终止自身及子进程")
+                # 父进程退出前清理内存中的暂停队列和暂停歌单
+                try:
+                    playback_manager.paused_queue.clear()
+                    playback_manager.paused_song_list_mids.clear()
+                    logger.info("父进程已退出，已清理暂停队列和暂停歌单")
+                except Exception as e:
+                    logger.warning(f"清理暂停队列时出错: {e}")
+                _terminate_self_and_children()
+                return
+        except Exception as e:
+            logger.warning(f"检查父进程状态时出错: {e}")
+        time.sleep(check_interval)
+
+def _batch_play_worker(mids, parent_pid=None):
     """批量播放音乐的后台工作函数
-    
+
     Args:
         mids (list): 要处理的音乐mid值列表
+        parent_pid (int, optional): 父进程PID，用于监控父进程是否存活
     """
     logger.info(f"批量播放后台进程已启动，共处理{len(mids)}首歌曲")
+
+    # 如果指定了父进程PID，启动守护线程监控父进程存活状态
+    if parent_pid is not None:
+        watcher = threading.Thread(
+            target=_watch_parent_process,
+            args=(parent_pid,),
+            daemon=True
+        )
+        watcher.start()
     
     # 添加失败计数器
     failure_count = 0
@@ -25,8 +85,13 @@ def _batch_play_worker(mids):
     music_player = Music()
     
     for i, mid in enumerate(mids, 1):
+        # 每次循环先检查是否收到停止播放请求
+        if playback_manager.stop_requested:
+            logger.info("收到停止播放请求，终止批量下载任务")
+            break
+
         logger.info(f"处理第{i}/{len(mids)}首歌曲，mid: {mid}")
-        
+
         try:
             # 1. 获取音乐mid信息
             music_info_result = music_player.get_music_mid_info(mid)
@@ -83,7 +148,13 @@ def _batch_play_worker(mids):
             
             # 成功处理后重置失败计数器
             failure_count = 0
-            
+
+            # 更新 playback_manager 中的当前歌单索引（0 开始）
+            try:
+                playback_manager.current_song_list_index = i - 1
+            except Exception as e:
+                logger.warning(f"更新当前歌单索引时出错: {e}")
+
             logger.info(f"第 {i}/{len(mids)} 首歌曲处理完成")
             logger.info(f"正在播放: {download_result.get('song_name', '')} - {download_result.get('singer_name', '')} - {download_result.get('album_name', '')}")
 

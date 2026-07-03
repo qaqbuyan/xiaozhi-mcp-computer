@@ -1,6 +1,5 @@
-import os
-import sys
 import re
+import sys
 import ctypes
 import logging
 
@@ -25,6 +24,7 @@ _enable_ansi_on_windows()
 RESET = '\033[0m'
 WHITE = '\033[37m'
 BLUE = '\033[34m'
+GREEN = '\033[32m'
 YELLOW = '\033[33m'
 RED = '\033[31m'
 MAGENTA = '\033[35m'

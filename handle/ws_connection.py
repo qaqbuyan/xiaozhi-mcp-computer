@@ -4,6 +4,8 @@ import random
 import asyncio
 import logging
 import subprocess
+import sys
+import sys
 import websockets
 from handle.ws_utils import (
     is_ssl_error, is_self_signed_cert_error, is_dns_error,
@@ -118,6 +120,11 @@ async def connect_to_server(uri, on_process_end=None):
             env = os.environ.copy()
             from handle.path import get_config_path
             env['MCP_CONFIG_PATH'] = get_config_path()
+
+            # 打包模式下子进程显示为 python.exe，通过环境变量通知通知模块显示正确名称
+            if getattr(sys, 'frozen', False):
+                env['XIAOZHI_APP_NAME'] = '小智控制电脑'
+
             
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW

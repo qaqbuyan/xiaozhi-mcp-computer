@@ -1,12 +1,14 @@
 import logging
 from utils.music.music import Music
 from mcp.server.fastmcp import FastMCP
+from handle.missing_params import ask_on_missing
 from utils.music.batch_play import batch_play_music
 
 logger = logging.getLogger('播放新歌')
 
 def computer_play_new_song(mcp: FastMCP):
     @mcp.tool()
+    @ask_on_missing('type')
     def computer_play_new_song(type: int = 1) -> dict:
         """用于在电脑上播放新歌速递
         当用户需要在电脑上播放新歌速递时，立刻使用该工具。

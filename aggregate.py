@@ -2,9 +2,6 @@ import sys
 import time
 import signal
 import logging
-from services.register import register
-from mcp.server.fastmcp import FastMCP
-from handle.version import get_version
 from handle.logger import setup_logging
 from handle.check import check_packages
 from handle.ws_utils import cleanup_all_processes
@@ -33,6 +30,13 @@ if __name__ == "__main__":
     except Exception as e:
         logger.error(f"环境检查失败：{str(e)}")
         raise
+
+    # 环境检查通过后再导入依赖第三方库的模块，避免缺失依赖时提前崩溃
+    from handle.version import get_version
+    from mcp.server.fastmcp import FastMCP
+    from services.register import register
+    from handle.notification import attach_tool_notifications
+
     # 调用版本检查函数
     get_version(False)
     logger.info("启动注册服务...")
@@ -40,6 +44,8 @@ if __name__ == "__main__":
     mcp = FastMCP("管道服务")
     # 注册服务
     register(mcp)
+    # 为所有已注册工具附加调用通知
+    attach_tool_notifications(mcp)
     # 添加初始化完成标志
     mcp._initialized = True
     logger.info("服务注册完成，准备接收请求")

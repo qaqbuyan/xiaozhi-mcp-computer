@@ -1,11 +1,13 @@
 import logging
 import pyautogui
 from mcp.server.fastmcp import FastMCP
+from handle.missing_params import ask_on_missing
 
 logger = logging.getLogger('鼠标长按')
 
 def mouse_long_press(mcp: FastMCP):
     @mcp.tool()
+    @ask_on_missing('click_type', 'duration')
     def mouse_long_press(click_type: str = "left", duration= 2 ) -> dict:
         """
         模拟鼠标长按操作。包括左键长按、右键长按、中键长按、取消长按。

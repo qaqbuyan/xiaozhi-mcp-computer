@@ -9,6 +9,7 @@ from utils.open.tools import register_open
 from utils.scan.tools import register_scan
 from utils.mouse.tools import register_mouse
 from utils.music.tools import register_music
+from utils.image.tools import register_image
 from utils.version.tools import register_version
 from utils.speaker.tools import register_speaker
 from utils.browser.tools import register_browser
@@ -17,7 +18,7 @@ from utils.clipboard.tools import register_clipboard
 from utils.automation.tools import register_automation
 from utils.screenshot.tools import register_screenshot
 from utils.application.tools import register_application
-from utils.image.tools import register_image
+from utils.notification.tool import register_notification_tool
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
@@ -66,7 +67,15 @@ def register(mcp: FastMCP):
     for config_path, register_func, tool_name in tool_registrations:
         register_tool(mcp, config_path, register_func, tool_name, logger)
     
+    # 获取配置
+    config = load_config()
+
     # 注册版本工具（无需配置检查）
     register_version(mcp)
-    
+    # 根据配置注册系统通知工具
+    if config.get('utils', {}).get('send_notification', True):
+        register_notification_tool(mcp)
+    else:
+        logger.info("系统通知工具已禁用，跳过注册")
+
     logger.info("所有工具注册完成")

@@ -1,11 +1,13 @@
 import logging
 from handle.version import get_version
 from mcp.server.fastmcp import FastMCP
+from handle.missing_params import ask_on_missing
 
 logger = logging.getLogger('版本检查')
 
 def check_version(mcp: FastMCP):
     @mcp.tool()
+    @ask_on_missing('all_version')
     def check_version(all_version: bool = False) -> dict:
         """用于获取当前客户端最新的版本，当需要获取客户端版本信息时，立刻使用该工具。
             该工具会返回一个字符串，包含当前客户端的版本信息。

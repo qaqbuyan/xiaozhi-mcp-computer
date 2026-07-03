@@ -4,6 +4,7 @@ import sqlite3
 import logging
 from pathlib import Path
 from mcp.server.fastmcp import FastMCP
+from handle.missing_params import ask_on_missing
 from utils.browser.edge import get_edge_bookmarks
 from utils.browser.chrome import get_chrome_bookmarks
 from utils.browser.firefox import get_firefox_bookmarks
@@ -12,6 +13,7 @@ logger = logging.getLogger('书签工具')
 
 def get_browser_bookmarks(mcp: FastMCP):
     @mcp.tool()
+    @ask_on_missing('browser_type')
     def get_browser_bookmarks(browser_type: str = None) -> dict:
         """获取浏览器书签, 当得到获取浏览器书签的结果时，可以使用‘open_website’工具打开对应的书签。
         Notice：

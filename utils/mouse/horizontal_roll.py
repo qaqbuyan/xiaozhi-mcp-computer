@@ -1,11 +1,13 @@
 import logging
 import pyautogui
 from mcp.server.fastmcp import FastMCP
+from handle.missing_params import ask_on_missing
 
 logger = logging.getLogger('鼠标水平移动')
 
 def mouse_horizontal_move(mcp: FastMCP):
     @mcp.tool()
+    @ask_on_missing('is_left', 'total_move', 'duration')
     def mouse_horizontal_move(is_left: bool = True, total_move: int = 100, duration: float = 0.25) -> dict:
         """
         模拟鼠标水平移动操作。包括向左移动和向右移动。当说鼠标向左或向右移动时，立刻使用该工具。

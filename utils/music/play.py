@@ -142,10 +142,14 @@ class MusicPlaybackManager:
         self.current_song_name = None
         self.current_singer_name = None
         self.play_queue = []
+        self.paused_queue = []  # 暂停时保存的已下载队列（内存中）
         self.queue_lock = threading.Lock()
         self.playback_lock = threading.Lock()
         self.stop_requested = False
         self.current_song_list_id = None
+        self.current_song_list_mids = []  # 当前歌单的完整 mid 列表
+        self.current_song_list_index = 0  # 当前播放到的 mid 索引（0 开始）
+        self.paused_song_list_mids = []  # 暂停时保存的剩余 mid 列表
         self.active_processes = []  # 记录所有活动的播放器进程
         # 待处理歌曲集合（正在搜索/下载中，尚未进入播放队列）
         # 用于防止 AI 超时重试导致重复添加
@@ -204,7 +208,155 @@ class MusicPlaybackManager:
         if not self.is_playing:
             playback_thread = threading.Thread(target=self._playback_worker, daemon=True)
             playback_thread.start()
-    
+
+    def pause_playback(self):
+        """暂停播放：停止当前歌曲，将后续队列/歌单保存到内存，不清理临时音乐文件"""
+        logger.info("开始暂停播放并保存队列到内存")
+
+        with self.queue_lock:
+            # 保存已下载的播放队列
+            self.paused_queue = list(self.play_queue)
+            saved_queue_count = len(self.paused_queue)
+
+            # 保存剩余的歌单 mid 列表（优先，恢复时可重新下载完整后续列表）
+            if self.current_song_list_mids:
+                start_idx = max(0, self.current_song_list_index)
+                self.paused_song_list_mids = self.current_song_list_mids[start_idx:]
+                saved_mids_count = len(self.paused_song_list_mids)
+            else:
+                saved_mids_count = 0
+
+            # 清空当前播放队列，停止后台下载/播放线程
+            self.play_queue.clear()
+            self.stop_requested = True
+            logger.info(f"暂停保存完成：已下载队列 {saved_queue_count} 首，剩余 mid 列表 {saved_mids_count} 首")
+
+        # 停止当前播放（不删除临时音乐文件，以便恢复时继续使用）
+        self._stop_playback_immediate(cleanup_temp_files=False)
+
+    def resume_playback(self):
+        """继续播放：从 paused_song_list_mids 或 paused_queue 恢复并开始播放
+
+        Returns:
+            bool: 是否成功从暂停状态恢复
+        """
+        with self.queue_lock:
+            # 优先从保存的歌单 mid 列表恢复（可重新下载完整后续歌单）
+            if self.paused_song_list_mids:
+                self.current_song_list_mids = list(self.paused_song_list_mids)
+                self.current_song_list_index = 0
+                self.paused_song_list_mids.clear()
+                self.paused_queue.clear()
+                self.stop_requested = False
+                logger.info(f"已从暂停歌单恢复 {len(self.current_song_list_mids)} 首歌曲")
+
+                # 启动后台下载线程
+                try:
+                    from utils.music.play_worker import _batch_play_worker
+                    download_thread = threading.Thread(
+                        target=_batch_play_worker,
+                        args=(self.current_song_list_mids,),
+                        daemon=True
+                    )
+                    download_thread.start()
+                    logger.info("已启动歌单恢复后台下载线程")
+                except Exception as e:
+                    logger.error(f"启动歌单恢复后台线程失败: {str(e)}")
+                    import traceback
+                    logger.error(f"详细错误信息: {traceback.format_exc()}")
+                    return False
+
+                # 同时启动播放线程
+                self.start_playback()
+                return True
+
+            # 没有完整歌单时，尝试恢复已下载的队列
+            if self.paused_queue:
+                self.play_queue = list(self.paused_queue)
+                self.paused_queue.clear()
+                self.stop_requested = False
+                logger.info(f"已从暂停队列恢复 {len(self.play_queue)} 首歌曲")
+                self.start_playback()
+                return True
+
+            logger.info("暂停队列为空，无法恢复")
+            return False
+
+    def _stop_playback_immediate(self, cleanup_temp_files=True):
+        """立即停止当前播放的内部方法
+
+        Args:
+            cleanup_temp_files (bool): 是否清理临时音乐文件。暂停时传入 False。
+        """
+        logger.info(f"开始立即停止当前播放（清理临时文件={cleanup_temp_files}）")
+
+        # 1. 请求停止
+        with self.queue_lock:
+            self.stop_requested = True
+            self.play_queue.clear()
+
+        # 2. 短暂等待后强制重置状态
+        time.sleep(1)
+        with self.queue_lock:
+            if self.is_playing:
+                logger.warning("当前播放线程未停止，强制清理资源")
+                self.is_playing = False
+            self.current_file = None
+            self.current_player = None
+            self.current_song_name = None
+            self.current_singer_name = None
+            self.current_song_list_id = None
+
+        # 3. 终止播放器进程
+        try:
+            with self.queue_lock:
+                if self.active_processes:
+                    logger.info(f"开始处理{len(self.active_processes)}个播放器进程...")
+                    terminated_count = 0
+                    already_stopped_count = 0
+                    for process in self.active_processes:
+                        try:
+                            if process.poll() is None:
+                                process.terminate()
+                                process.wait(timeout=5)
+                                terminated_count += 1
+                                logger.info(f"已终止播放器进程: PID {process.pid}")
+                            else:
+                                already_stopped_count += 1
+                                logger.info(f"播放器进程已停止: PID {process.pid}")
+                        except Exception as e:
+                            logger.warning(f"终止播放器进程失败 (PID {process.pid}): {str(e)}")
+                    logger.info(f"播放器进程处理完成：已终止 {terminated_count} 个，原本已停止 {already_stopped_count} 个")
+                    self.active_processes.clear()
+        except Exception as e:
+            logger.error(f"终止播放器进程发生错误: {str(e)}")
+            import traceback
+            logger.error(f"详细错误信息: {traceback.format_exc()}")
+
+        # 4. 按需清理临时音乐文件
+        if cleanup_temp_files:
+            try:
+                current_working_dir = os.getcwd()
+                tmp_dir = os.path.join(current_working_dir, "tmp")
+                if os.path.exists(tmp_dir):
+                    deleted_count = 0
+                    for filename in os.listdir(tmp_dir):
+                        if filename.startswith("music_") and filename.endswith((".mp3", ".wav", ".ogg", ".flac", ".m4a", ".aac")):
+                            tmp_file_path = os.path.join(tmp_dir, filename)
+                            try:
+                                os.remove(tmp_file_path)
+                                logger.info(f"已删除临时音乐文件: {filename}")
+                                deleted_count += 1
+                            except (IOError, PermissionError) as e:
+                                logger.warning(f"无法删除临时音乐文件 {filename}: {str(e)}")
+                    logger.info(f"共清理{deleted_count}个临时音乐文件")
+            except Exception as e:
+                logger.error(f"清理临时音乐文件发生错误: {str(e)}")
+                import traceback
+                logger.error(f"详细错误信息: {traceback.format_exc()}")
+
+        logger.info("立即停止当前播放完成")
+
     def _playback_worker(self):
         """播放队列工作线程"""
         try:
@@ -546,6 +698,8 @@ class MusicPlaybackManager:
                 "current_song_name": self.current_song_name,
                 "current_singer_name": self.current_singer_name,
                 "queue_length": queue_length,
+                "paused_queue_length": len(self.paused_queue),
+                "paused_song_list_length": len(self.paused_song_list_mids),
                 "current_song_list_id": self.current_song_list_id
             }
     
@@ -644,46 +798,50 @@ class MusicPlaybackManager:
         with self.queue_lock:
             # 确保停止请求标志为False
             self.stop_requested = False
-            
-            # 清理当前播放队列
+
+            # 清理当前播放队列和暂停队列
             self.play_queue.clear()
-            
+            self.paused_queue.clear()
+
             # 设置新的歌单ID
             self.current_song_list_id = song_list_id
-            
+
             logger.info(f"已快速清理队列并准备添加新的歌单，共{len(song_list_data)}首歌曲，歌单ID: {song_list_id}")
         
         # 3. 提取mid列表
         mids_to_process = [song.get('mid', '') for song in song_list_data if song.get('mid')]
-        
+
         if not mids_to_process:
             logger.error("没有有效的歌曲mid列表，无法启动歌单播放")
             return
-        
-        # 4. 立即启动后台进程处理歌曲下载
+
+        # 保存当前歌单的完整 mid 列表，用于暂停/继续
+        with self.queue_lock:
+            self.current_song_list_mids = list(mids_to_process)
+            self.current_song_list_index = 0
+            self.paused_song_list_mids.clear()
+            logger.info(f"已保存歌单完整 mid 列表，共 {len(self.current_song_list_mids)} 首")
+
+        # 4. 立即启动后台线程处理歌曲下载
         try:
             # 导入需要的模块
             from utils.music.play_worker import _batch_play_worker
-            import multiprocessing
-            
-            # 创建后台进程，设置为daemon=True，当主进程退出时自动终止
-            process = multiprocessing.Process(
+
+            # 创建后台守护线程，与主进程共享 playback_manager 状态
+            download_thread = threading.Thread(
                 target=_batch_play_worker,
-                args=(mids_to_process,)
+                args=(mids_to_process,),
+                daemon=True
             )
-            process.daemon = True
-            process.start()
-            
-            # 注册到全局进程管理器
-            self.process_manager.add_process(process)
-            
-            logger.info("已立即启动歌单播放后台进程")
-            
+            download_thread.start()
+
+            logger.info("已立即启动歌单播放后台线程")
+
         except Exception as e:
-            logger.error(f"启动歌单播放后台进程失败: {str(e)}")
+            logger.error(f"启动歌单播放后台线程失败: {str(e)}")
             import traceback
             logger.error(f"详细错误信息: {traceback.format_exc()}")
-            return  # 如果进程启动失败，直接返回
+            return  # 如果线程启动失败，直接返回
         
         # 5. 立即启动播放线程（不等待后台进程）
         try:
@@ -723,106 +881,33 @@ class MusicPlaybackManager:
                 logger.error(f"详细错误信息: {traceback.format_exc()}")
         
         # 启动后台线程处理清理工作
-        import threading
         thread = threading.Thread(target=_background_cleanup, daemon=True)
         thread.start()
         logger.info("后台清理任务已启动，主流程继续执行")
     
     def stop_current_playback(self):
-        """停止当前播放并清理所有临时音乐文件"""
+        """停止当前播放并清理所有临时音乐文件（同时清空暂停队列）"""
         logger.info("开始停止当前播放并清理所有临时音乐文件")
-        
+
+        # 清空暂停队列和暂停歌单，确保停止后无法继续播放
+        with self.queue_lock:
+            self.paused_queue.clear()
+            self.paused_song_list_mids.clear()
+            logger.info("已清空暂停队列和暂停歌单")
+
         # 将耗时操作放到后台线程中执行，避免阻塞主线程
         def _stop_and_cleanup():
             try:
-                # 1. 请求停止播放
-                with self.queue_lock:
-                    self.stop_requested = True
-                    self.play_queue.clear()
-                    logger.info("已请求停止当前播放并清理队列")
-                
-                # 2. 等待播放线程停止（最多等待10秒）
-                wait_time = 0
-                max_wait_time = 10
-                while self.is_playing and wait_time < max_wait_time:
-                    time.sleep(0.5)
-                    wait_time += 0.5
-                    logger.info(f"等待当前播放线程停止... ({wait_time}/{max_wait_time}秒)")
-                
-                if self.is_playing:
-                    logger.warning(f"当前播放线程在{max_wait_time}秒内未停止，强制清理资源")
-                    # 强制重置播放状态
-                    with self.queue_lock:
-                        self.is_playing = False
-                        self.current_file = None
-                        self.current_player = None
-                        self.current_song_name = None
-                        self.current_singer_name = None
-                        self.current_song_list_id = None
-                else:
-                    logger.info("当前播放线程已成功停止")
-                
-                # 3. 终止所有活动的播放器进程
-                try:
-                    with self.queue_lock:
-                        if self.active_processes:
-                            logger.info(f"开始终止{len(self.active_processes)}个播放器进程...")
-                            terminated_count = 0
-                            for process in self.active_processes:
-                                try:
-                                    if process.poll() is None:  # 进程仍在运行
-                                        process.terminate()
-                                        process.wait(timeout=5)  # 等待进程终止
-                                        terminated_count += 1
-                                        logger.info(f"已终止播放器进程: PID {process.pid}")
-                                    else:
-                                        logger.info(f"播放器进程已停止: PID {process.pid}")
-                                except Exception as e:
-                                    logger.warning(f"终止播放器进程失败 (PID {process.pid}): {str(e)}")
-                            logger.info(f"共终止{terminated_count}个播放器进程")
-                            self.active_processes.clear()
-                        else:
-                            logger.info("没有活动的播放器进程需要终止")
-                except Exception as e:
-                    logger.error(f"终止播放器进程发生错误: {str(e)}")
-                    import traceback
-                    logger.error(f"详细错误信息: {traceback.format_exc()}")
-                    
-                # 4. 清理所有临时音乐文件
-                try:
-                    # 获取当前工作目录下的tmp文件夹路径
-                    current_working_dir = os.getcwd()
-                    tmp_dir = os.path.join(current_working_dir, "tmp")
-                    
-                    if os.path.exists(tmp_dir):
-                        # 删除所有以"music_"开头的音乐文件
-                        deleted_count = 0
-                        for filename in os.listdir(tmp_dir):
-                            if filename.startswith("music_") and filename.endswith((".mp3", ".wav", ".ogg", ".flac", ".m4a", ".aac")):
-                                tmp_file_path = os.path.join(tmp_dir, filename)
-                                try:
-                                    os.remove(tmp_file_path)
-                                    logger.info(f"已删除临时音乐文件: {filename}")
-                                    deleted_count += 1
-                                except (IOError, PermissionError) as e:
-                                    logger.warning(f"无法删除临时音乐文件 {filename}: {str(e)}")
-                        
-                        logger.info(f"共清理{deleted_count}个临时音乐文件")
-                    else:
-                        logger.info("tmp文件夹不存在，无需清理临时音乐文件")
-                except Exception as e:
-                    logger.error(f"清理临时音乐文件发生错误: {str(e)}")
-                    import traceback
-                    logger.error(f"详细错误信息: {traceback.format_exc()}")
+                # 使用统一的立即停止方法，并清理临时音乐文件
+                self._stop_playback_immediate(cleanup_temp_files=True)
             except Exception as e:
                 logger.error(f"停止播放并清理资源时发生错误: {str(e)}")
                 import traceback
                 logger.error(f"详细错误信息: {traceback.format_exc()}")
             finally:
                 logger.info("停止播放并清理临时音乐文件完成")
-        
+
         # 启动后台线程处理停止播放和清理工作
-        import threading
         thread = threading.Thread(target=_stop_and_cleanup, daemon=True)
         thread.start()
         logger.info("停止播放任务已提交到后台线程处理")

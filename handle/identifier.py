@@ -1,5 +1,5 @@
-import hashlib
 import uuid
+import hashlib
 
 def get_or_create_user_id() -> str:
     """获取设备唯一标识符（基于 MAC 地址的 SHA256 哈希）"""

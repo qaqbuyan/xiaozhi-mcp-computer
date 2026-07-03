@@ -1,18 +1,10 @@
 import logging
 import win32gui
 import win32con
-from typing import List, Tuple, Optional
+from typing import List, Tuple
+from handle.color_formatter import RESET, WHITE, YELLOW, GREEN, BLUE
 
 logger = logging.getLogger('窗口Z序')
-
-# ANSI 颜色定义
-class _C:
-    RST = '\033[0m'
-    YLW = '\033[33m'     # 黄色
-    BWHT = '\033[1;37m'  # 亮白色
-    GRN = '\033[32m'     # 绿色
-    BLU = '\033[34m'     # 蓝色
-    CYN = '\033[36m'     # 青色
 
 # 系统级窗口类名（不可关闭）
 _SYSTEM_CLASSES = {
@@ -70,16 +62,16 @@ def get_z_order_top_to_bottom() -> List[Tuple[int, str, Tuple[int, int, int, int
     header = f"当前桌面窗口顺序（从上到下共{len(z_order)}个）："
     sep = f"{'─'*60}"
     col_header = (
-        f"{_C.YLW}编号{_C.RST}  "
-        f"{_C.BWHT}标题{_C.RST}  "
-        f"{_C.GRN}|  {_C.GRN}句柄{_C.RST}  "
-        f"{_C.GRN}|  {_C.GRN}位置{_C.RST}"
+        f"{YELLOW}编号{RESET}  "
+        f"{WHITE}标题{RESET}  "
+        f"{GREEN}|  {GREEN}句柄{RESET}  "
+        f"{GREEN}|  {GREEN}位置{RESET}"
     )
     items = [
-        f"{_C.YLW}{i:>2}.{_C.RST} "
-        f"{_C.BWHT}{title}{_C.RST}  "
-        f"{_C.GRN}|{_C.RST}  {_C.GRN}{hwnd}{_C.RST}  "
-        f"{_C.GRN}|{_C.RST}  {_C.BLU}{rect}{_C.RST}"
+        f"{YELLOW}{i:>2}.{RESET} "
+        f"{WHITE}{title}{RESET}  "
+        f"{GREEN}|{RESET}  {GREEN}{hwnd}{RESET}  "
+        f"{GREEN}|{RESET}  {BLUE}{rect}{RESET}"
         for i, (hwnd, title, rect) in enumerate(z_order, 1)
     ]
     logger.info("\n".join([header, sep, col_header] + items))

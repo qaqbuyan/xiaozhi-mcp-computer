@@ -1,11 +1,13 @@
 import logging
 import pyautogui
 from mcp.server.fastmcp import FastMCP
+from handle.missing_params import ask_on_missing
 
 logger = logging.getLogger('鼠标滚动')
 
 def mouse_up_and_down_move(mcp: FastMCP):
     @mcp.tool()
+    @ask_on_missing('is_downward', 'total_scroll', 'step_size')
     def mouse_up_and_down_move(is_downward: bool = True, total_scroll: int = 2000, step_size: int = 100) -> dict:
         """
         模拟鼠标滚轮滚动操作。包括向下滚动和向上滚动。当说滚动，向下滑或向上滑时，立刻使用该工具。

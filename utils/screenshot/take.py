@@ -1,11 +1,13 @@
 import logging
 from mcp.server.fastmcp import FastMCP
+from handle.missing_params import ask_on_missing
 from utils.screenshot.save import save_screenshot
 
 logger = logging.getLogger('屏幕截图')
 
 def take_screenshot(mcp: FastMCP):
     @mcp.tool()
+    @ask_on_missing('save_dir')
     def take_screenshot(save_dir: str = None) -> dict:
         """进行屏幕截图并保存到指定路径。
         当需要进行屏幕截图时，立刻使用该工具。

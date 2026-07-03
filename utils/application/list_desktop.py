@@ -1,9 +1,6 @@
 import logging
 from mcp.server.fastmcp import FastMCP
-from utils.application.window_order import (
-    get_z_order_top_to_bottom,
-    get_visible_windows,
-)
+from utils.application.window_order import get_z_order_top_to_bottom
 
 logger = logging.getLogger('窗口列表')
 
@@ -28,8 +25,6 @@ def list_desktop_windows(mcp: FastMCP):
         logger.info("获取桌面窗口Z轴层级顺序 ...")
 
         try:
-            # 获取可见窗口完整列表
-            all_windows = get_visible_windows()
             # 获取Z序（从上到下）
             z_order = get_z_order_top_to_bottom()
 
@@ -42,12 +37,14 @@ def list_desktop_windows(mcp: FastMCP):
                     "rect": list(rect),
                 })
 
+            msg = f"获取到 {len(window_list)} 个可见窗口"
             result = {
                 "success": True,
+                "result": msg,
                 "total_windows": len(window_list),
                 "windows": window_list,
             }
-            logger.info(f"获取到 {len(window_list)} 个可见窗口")
+            logger.info(msg)
             return result
 
         except Exception as e:
@@ -55,6 +52,7 @@ def list_desktop_windows(mcp: FastMCP):
             logger.error(msg)
             return {
                 "success": False,
+                "result": msg,
                 "total_windows": 0,
                 "windows": [],
             }

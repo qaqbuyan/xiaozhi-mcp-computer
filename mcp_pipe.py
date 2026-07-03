@@ -1,7 +1,3 @@
-"""
-管道服务入口：信号注册、配置加载、启动
-"""
-
 import sys
 import signal
 import atexit
@@ -10,9 +6,9 @@ import logging
 from handle.loader import load_config
 from handle.logger import setup_logging
 from handle.ws_connection import set_config
+from handle.app_entry import main as _app_main
 from handle.ws_utils import cleanup_all_processes
 from handle.signal_handler import make_signal_handler
-from handle.app_entry import main as _app_main
 
 config = load_config()
 logger = setup_logging()
