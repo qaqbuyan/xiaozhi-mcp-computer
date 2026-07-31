@@ -10,6 +10,10 @@ from handle.loader import load_config
 
 logger = logging.getLogger('系统通知')
 
+# 同一进程内为每个通知分配唯一 uID，避免图标 ID 冲突
+_uid_counter = 0
+_uid_lock = threading.Lock()
+
 # Windows API 常量
 NIM_ADD = 0x00000000
 NIM_MODIFY = 0x00000001
@@ -64,11 +68,19 @@ def _send_notification_impl(title: str, message: str, timeout: int, icon_path: s
         from win32api import GetModuleHandle, GetLastError
         from win32gui import (
             CreateWindow, DestroyWindow, PumpWaitingMessages,
-            WNDCLASS, RegisterClass,
+            WNDCLASS, RegisterClass, UnregisterClass,
         )
     except ImportError:
         logger.warning("缺少 win32api/win32gui，无法发送系统通知")
         return
+
+    global _uid_counter
+
+    hinst = None
+    hwnd = None
+    hIcon = None
+    class_atom = None
+    uid = 0
 
     try:
         hinst = GetModuleHandle(None)
@@ -83,10 +95,15 @@ def _send_notification_impl(title: str, message: str, timeout: int, icon_path: s
         hwnd = CreateWindow(class_atom, class_name, 0, 0, 0, 0, 0, 0, 0, hinst, None)
         logger.info(f"创建窗口: {class_name},{hwnd}")
 
+        # 分配进程级唯一 uID，避免图标 ID 冲突或资源泄漏累积
+        with _uid_lock:
+            _uid_counter += 1
+            uid = _uid_counter
+
         nid = NOTIFYICONDATAW()
         nid.cbSize = ctypes.sizeof(NOTIFYICONDATAW)
         nid.hWnd = hwnd
-        nid.uID = 100
+        nid.uID = uid
         nid.uFlags = NIF_MESSAGE
         nid.uCallbackMessage = WM_NOTIFY_CALLBACK
 
@@ -103,7 +120,6 @@ def _send_notification_impl(title: str, message: str, timeout: int, icon_path: s
         if not Shell_NotifyIconW(NIM_ADD, ctypes.byref(nid)):
             err = GetLastError()
             logger.warning(f"Shell_NotifyIconW NIM_ADD 失败，错误码={err}，通知未显示")
-            DestroyWindow(hwnd)
             return
 
         # 再发送气泡通知，这种方式在 Windows 10/11 上更稳定
@@ -120,11 +136,26 @@ def _send_notification_impl(title: str, message: str, timeout: int, icon_path: s
         start = time.time()
         while time.time() - start < timeout + 1:
             PumpWaitingMessages()
+            time.sleep(0.05)
 
-        Shell_NotifyIconW(NIM_DELETE, ctypes.byref(nid))
-        DestroyWindow(hwnd)
     except Exception as e:
         logger.error(f"发送系统通知时出错: {e}", exc_info=True)
+    finally:
+        # 确保资源被释放，避免托盘图标或窗口类泄漏导致后续通知失败
+        if hwnd and uid:
+            nid = NOTIFYICONDATAW()
+            nid.cbSize = ctypes.sizeof(NOTIFYICONDATAW)
+            nid.hWnd = hwnd
+            nid.uID = uid
+            if not ctypes.windll.shell32.Shell_NotifyIconW(NIM_DELETE, ctypes.byref(nid)):
+                err = GetLastError()
+                logger.warning(f"Shell_NotifyIconW NIM_DELETE 失败，错误码={err}")
+        if hwnd:
+            DestroyWindow(hwnd)
+        if hIcon:
+            ctypes.windll.user32.DestroyIcon(hIcon)
+        if class_atom and hinst:
+            UnregisterClass(class_atom, hinst)
 
 def send_notification(title: str, message: str, timeout: int = 5):
     """

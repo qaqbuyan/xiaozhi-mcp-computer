@@ -31,9 +31,8 @@ def identify_image_text_coordinates(image: str) -> dict:
             '.jpeg': 'image/jpeg', 
             '.gif': 'image/gif' 
         }.get(ext.lower(), 'application/octet-stream')
-        config_data = load_config()
         ocr_url_config = config_data.get('utils', {}).get('image', {}).get('text', {}).get('ocr')
-        if ocr_url_config is None or ocr_url_config == 'https://qaqbuyan.com:88/api/ocr/':
+        if not ocr_url_config or ocr_url_config == 'https://qaqbuyan.com:88/api/ocr/':
             ocr_url = 'https://qaqbuyan.com:88/api/ocr/'
             logger.info("使用公益默认OCR接口，如需更高性能请配置自定义OCR服务")
         else:
