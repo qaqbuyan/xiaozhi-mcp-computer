@@ -4,11 +4,24 @@ import signal
 import logging
 from handle.logger import setup_logging
 from handle.check import check_packages
+from contextlib import asynccontextmanager
 from handle.ws_utils import cleanup_all_processes
 from handle.log_filter import RequestTypeTranslator
 from handle.signal_handler import make_signal_handler
 
 signal_handler = make_signal_handler('管道服务')
+
+# 服务启动时建立第三方 MCP 服务器长连接并注册工具，关闭时释放连接
+@asynccontextmanager
+async def _lifespan(server):
+    from services.mcp_servers import register_mcp_servers_async, close_all
+    from handle.notification import attach_tool_notifications
+    # 在服务主事件循环中建立连接，注册后连接保持打开（长连接）
+    await register_mcp_servers_async(server)
+    # 为所有已注册工具（含第三方 MCP 工具）附加调用通知
+    attach_tool_notifications(server)
+    yield
+    await close_all()
 
 if __name__ == "__main__":
     # 注册信号处理器
@@ -35,17 +48,14 @@ if __name__ == "__main__":
     from handle.version import get_version
     from mcp.server.fastmcp import FastMCP
     from services.register import register
-    from handle.notification import attach_tool_notifications
 
     # 调用版本检查函数
     get_version(False)
     logger.info("启动注册服务...")
     # 创建MCP服务器
-    mcp = FastMCP("管道服务")
+    mcp = FastMCP("管道服务", lifespan=_lifespan)
     # 注册服务
     register(mcp)
-    # 为所有已注册工具附加调用通知
-    attach_tool_notifications(mcp)
     # 添加初始化完成标志
     mcp._initialized = True
     logger.info("服务注册完成，准备接收请求")

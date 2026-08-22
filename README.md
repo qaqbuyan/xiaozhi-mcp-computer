@@ -121,12 +121,9 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
     - 停止播放
     - 切换播放模式（循环/随机/顺序）
     - 调整音量（增加/减少/设置）
-- 自动化
+- 鼠标辅助
     - 输入文字
     - 移动鼠标到页面（屏幕）上的某个文字位置
-    - 文档
-        - Word
-        - Excel
 - 图像识别
     - 文字坐标
     - 图像描述
@@ -200,6 +197,79 @@ https://www.bilibili.com/video/BV19x3bz7E8z/
     - 切换静音
     - 获取音频会话列表
     - 设置指定程序音量
+
+&emsp;
+
+## 接入第三方 MCP 服务器
+
+除了本程序自带的工具外，还支持在 `config.yaml` 中通过 `mcpServers` 配置第三方 MCP 服务。添加后 AI 即可直接调用第三方服务器提供的工具。
+
+### 配置位置
+
+在 `config.yaml` 中的 `mcpServers` 段，每个服务的键名为该 MCP 服务在 `mcpServers` 中的唯一名称。可配置多个：
+
+```yaml
+mcpServers:
+  服务名称1:
+    ...
+  服务名称2:
+    ...
+```
+
+### 两种调用方式（二选一）
+
+#### 1. HTTP（Streamable HTTP）方式
+
+通过 URL 端点连接第三方 MCP 服务：
+
+```yaml
+mcpServers:
+  WeiXinMessage:
+    url: "https://qyapi.weixin.qq.com/mcp/v2/bot/msg?apikey=xxxxxx"
+    headers:
+      X-Mcp-Token: ""
+```
+
+| 字段 | 说明 | 是否必填 |
+| ---- | ---- | ---- |
+| `url` | 第三方 MCP 服务的 HTTP 端点地址 | 必填 |
+| `headers` | 附加请求头，如认证 Token（示例为 `X-Mcp-Token`） | 可选 |
+
+#### 2. stdio 命令方式
+
+通过本地命令（如 `npx` / `python`）启动第三方 MCP 服务：
+
+```yaml
+mcpServers:
+  FeishuProject:
+    command: "npx"
+    args:
+      - "-y"
+      - "@lark-project/mcp"
+      - "--domain"
+      - "{domain}"
+    env:
+      MCP_USER_TOKEN: ""
+```
+
+| 字段 | 说明 | 是否必填 |
+| ---- | ---- | ---- |
+| `command` | 启动命令，如 `npx` / `python` | 必填 |
+| `args` | 启动参数 | 可选 |
+| `env` | 注入的环境变量（示例为 `MCP_USER_TOKEN`） | 可选 |
+
+### 注册的工具名称
+
+注册后第三方工具会以 `服务名称_工具名称` 的形式暴露给 AI
+
+### WebSocket 1009 错误
+
+- 错误现象：如果添加了第三方 MCP 服务器，导致日志中出现 `received 1009 (message too big); then sent 1009 (message too big)`，随后连接断开并自动重连
+- 原因：通常是配置的第三方 MCP 服务器返回的工具列表（`tools/list` 响应）过大（例如工具数量多、工具描述或参数 Schema 很长），程序将其转发给云端服务端时，被服务端判定为"消息过大"而断开连接，这是**服务端（云端 WebSocket 网关）的限制**，并非本程序的问题
+- 解决方法：
+    - 减少同时启用的第三方 MCP 服务器数量，避免一次注册过多工具描述很长的服务（如 chrome-devtools 中自带29个服务在加上 本程序 自带的功能超过80多个，或者将需要一直工作的工具长挂至服务端而不是使用本程序）
+    - 删除或精简单个第三方 MCP 服务器配置，使其 `tools/list` 响应变小后重新启动
+    - 若必须使用某些服务，可联系服务提供方调大 WebSocket 消息大小上限
 
 &emsp;
 

@@ -15,10 +15,10 @@ from utils.speaker.tools import register_speaker
 from utils.browser.tools import register_browser
 from utils.keyboard.tools import register_keyboard
 from utils.clipboard.tools import register_clipboard
-from utils.automation.tools import register_automation
 from utils.screenshot.tools import register_screenshot
 from utils.application.tools import register_application
 from utils.notification.tool import register_notification_tool
+from services.mcp_servers import validate_mcp_servers
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
@@ -48,7 +48,6 @@ def register(mcp: FastMCP):
     # 工具注册配置列表
     tool_registrations = [
         (['utils', 'application'], register_application, "程序"),
-        (['utils', 'automation', 'document'], register_automation, "自动化"),
         (['utils', 'file'], register_file, "文件"),
         (['utils', 'keyboard'], register_keyboard, "键盘"),
         (['utils', 'mouse'], register_mouse, "鼠标"),
@@ -77,5 +76,8 @@ def register(mcp: FastMCP):
         register_notification_tool(mcp)
     else:
         logger.info("系统通知工具已禁用，跳过注册")
+
+    # 校验第三方 MCP 服务器配置（实际连接注册在服务启动时的 lifespan 中进行，以保持长连接）
+    validate_mcp_servers()
 
     logger.info("所有工具注册完成")
